@@ -6,12 +6,14 @@
     <title>Eudes Media Community</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #fff; }
-        .card { padding: 2rem; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 320px; text-align: center; border: 1px solid #eee; }
+        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #f4f7f6; }
+        .card { padding: 2rem; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 350px; text-align: center; border: 1px solid #eee; background: white; }
         input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
         button { width: 100%; padding: 12px; background: #24b47e; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
         .hidden { display: none; }
-        .footer { margin-top: 20px; font-size: 12px; color: #888; }
+        #chat-box { height: 250px; overflow-y: auto; border: 1px solid #eee; padding: 10px; margin: 15px 0; text-align: left; background: #fafafa; border-radius: 8px; font-size: 14px; }
+        .msg { margin-bottom: 8px; padding: 6px 10px; border-radius: 6px; background: #e8f5e9; display: inline-block; clear: both; }
+        .footer { margin-top: 20px; font-size: 12px; color: #888; border-top: 1px solid #eee; pt: 10px; }
     </style>
 </head>
 <body>
@@ -32,15 +34,24 @@
     </div>
 
     <div id="chat-screen" class="hidden">
-        <h3 style="color: #24b47e;">Welcome!</h3>
-        <p>Eudes Media Community Connected.</p>
+        <h3 style="color: #24b47e; margin-bottom: 5px;">Community Chat</h3>
+        <div id="chat-box">
+            <div class="msg"><b>System:</b> Welcome to Eudes Media! Type below to start.</div>
+        </div>
+        <div style="display: flex; gap: 5px;">
+            <input type="text" id="message-input" placeholder="Type a message..." style="margin: 0;">
+            <button onclick="sendMessage()" style="width: 80px; padding: 10px;">Send</button>
+        </div>
     </div>
 
-    <div class="footer">Eudes Media<br>Contact: +256762992440</div>
+    <div class="footer">
+        Eudes Media<br>
+        Contact: +256762992440
+    </div>
 </div>
 
 <script>
-    // Updated with your confirmed URL and the specific key you just sent
+    // Verified Project Details
     const SUPABASE_URL = "https://kjftrwuucjdnhfwesrup.supabase.co"; 
     const SUPABASE_KEY = "sb_publishable_1PetUo8klWCLfupRq52CVg_Y_YYrzcO"; 
     
@@ -49,13 +60,10 @@
     async function requestCode() {
         const email = document.getElementById('user-email').value;
         const btn = document.getElementById('request-btn');
-        if (!email) return alert("Enter email");
-
+        if (!email) return alert("Please enter your email");
         btn.innerText = "Sending...";
-
-        // This will trigger the 6-digit code to your Gmail
+        
         const { error } = await sb.auth.signInWithOtp({ email });
-
         if (error) {
             alert("Error: " + error.message);
             btn.innerText = "Get Verification Code";
@@ -72,11 +80,26 @@
         const { error } = await sb.auth.verifyOtp({ email, token, type: 'email' });
 
         if (error) {
-            alert("Invalid Code");
+            alert("Invalid Code. Try again.");
         } else {
             document.getElementById('code-screen').classList.add('hidden');
             document.getElementById('chat-screen').classList.remove('hidden');
         }
+    }
+
+    function sendMessage() {
+        const input = document.getElementById('message-input');
+        const chatBox = document.getElementById('chat-box');
+        if (!input.value.trim()) return;
+
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'msg';
+        msgDiv.innerHTML = `<b>You:</b> ${input.value}`;
+        chatBox.appendChild(msgDiv);
+        chatBox.appendChild(document.createElement('br'));
+        
+        input.value = "";
+        chatBox.scrollTop = chatBox.scrollHeight;
     }
 </script>
 </body>
