@@ -3,131 +3,107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Eudes Media Community</title>
+    <title>Eudes Media</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
-        .container { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
-        h1 { color: #004d40; margin-bottom: 10px; }
-        p { color: #5f6368; font-size: 14px; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #dadce0; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; background-color: #004d40; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background 0.3s; }
-        button:hover { background-color: #002d20; }
-        .footer { margin-top: 25px; font-size: 12px; color: #70757a; line-height: 1.6; border-top: 1px solid #eee; padding-top: 15px; }
+        body { font-family: sans-serif; background-color: #f0f2f5; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
+        h1 { color: #004d40; margin-bottom: 5px; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
+        button { width: 100%; padding: 12px; background-color: #004d40; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; }
         .hidden { display: none; }
-        #chat-area { text-align: left; }
-        #messages { height: 300px; overflow-y: auto; border: 1px solid #eee; padding: 10px; margin-bottom: 10px; border-radius: 8px; background: #fafafa; font-size: 14px; }
-        .msg-item { margin-bottom: 8px; padding: 5px; border-bottom: 1px solid #f0f0f0; }
+        #messages { height: 300px; overflow-y: auto; border: 1px solid #eee; padding: 10px; margin: 15px 0; text-align: left; background: #fafafa; border-radius: 8px; }
+        .footer { margin-top: 20px; font-size: 12px; color: #70757a; border-top: 1px solid #eee; padding-top: 15px; }
     </style>
 </head>
 <body>
 
-<div class="container">
+<div class="card">
     <h1>Eudes Media</h1>
+    <p id="status-text">Professional Community Messenger</p>
     
     <div id="auth-section">
-        <p>Professional Community Messenger</p>
-        <input type="email" id="email" placeholder="Enter your Gmail">
-        <button id="send-btn" onclick="sendOTP()">Get Verification Code</button>
-        
-        <div id="otp-section" class="hidden">
-            <input type="text" id="otp" placeholder="Enter 6-digit code">
-            <button onclick="verifyOTP()">Verify & Enter Chat</button>
+        <input type="email" id="email" placeholder="eudesprince078@gmail.com">
+        <button id="main-btn" onclick="sendOTP()">Get Verification Code</button>
+        <div id="otp-area" class="hidden">
+            <input type="text" id="otp-input" placeholder="Enter 6-digit code">
+            <button onclick="verifyOTP()">Verify & Enter</button>
         </div>
     </div>
 
     <div id="chat-section" class="hidden">
-        <div id="chat-area">
-            <div id="messages"></div>
-            <div style="display:flex; gap: 5px;">
-                <input type="text" id="msg-input" placeholder="Type a message..." style="margin:0;">
-                <button onclick="publishMessage()" style="width: 80px;">Send</button>
-            </div>
+        <div id="messages"></div>
+        <div style="display:flex; gap: 5px;">
+            <input type="text" id="msg-input" placeholder="Type a message..." style="margin:0;">
+            <button onclick="publishMessage()" style="width: 80px;">Send</button>
         </div>
     </div>
 
     <div class="footer">
-        <strong>Eudes Media</strong><br>
+        Eudes Media<br>
         Contact: +256762992440
     </div>
 </div>
 
 <script>
-    // These keys match your Supabase Dashboard exactly
     const URL = "https://kjftrwuucjdnhfwesrup.supabase.co";
     const KEY = "sb_publishable_1PetUo8klWCLfupRq52CVg_Y_YYrzcO";
-    const supabaseClient = supabase.createClient(URL, KEY);
+    const sb = supabase.createClient(URL, KEY);
 
     let userEmail = "";
 
     async function sendOTP() {
         userEmail = document.getElementById('email').value;
-        if(!userEmail) return alert("Please enter email");
+        if(!userEmail) return alert("Enter email");
         
-        const { error } = await supabaseClient.auth.signInWithOtp({ email: userEmail });
+        const { error } = await sb.auth.signInWithOtp({ email: userEmail });
         if (error) {
-            alert("Error: " + error.message);
+            alert(error.message);
         } else {
-            document.getElementById('otp-section').classList.remove('hidden');
-            document.getElementById('send-btn').classList.add('hidden');
-            alert("Check your Gmail for the code!");
+            document.getElementById('otp-area').classList.remove('hidden');
+            document.getElementById('email').classList.add('hidden');
+            document.getElementById('main-btn').classList.add('hidden');
+            document.getElementById('status-text').innerText = "Check your Gmail for the code";
         }
     }
 
     async function verifyOTP() {
-        const token = document.getElementById('otp').value;
-        const { error } = await supabaseClient.auth.verifyOtp({ email: userEmail, token, type: 'email' });
+        const token = document.getElementById('otp-input').value;
+        const { error } = await sb.auth.verifyOtp({ email: userEmail, token, type: 'email' });
         
         if (error) {
-            alert("Invalid code. Please check again.");
+            alert("Invalid code");
         } else {
             document.getElementById('auth-section').classList.add('hidden');
             document.getElementById('chat-section').classList.remove('hidden');
-            fetchMessages(); // Load old messages
-            subscribeToMessages(); // Real-time updates
+            document.getElementById('status-text').innerText = "Community Chat";
+            fetchAndListen();
         }
     }
 
-    async function fetchMessages() {
-        // MATCHES TABLE NAME 'Message' FROM YOUR DASHBOARD
-        const { data, error } = await supabaseClient.from('Message').select('*').order('created_at', { ascending: true });
-        if (data) {
-            data.forEach(msg => appendToUI(msg.username, msg.content));
-        }
-    }
+    async function fetchAndListen() {
+        // MATCHES TABLE 'Message'
+        const { data } = await sb.from('Message').select('*').order('created_at', { ascending: true });
+        if (data) data.forEach(m => addUI(m.username, m.content));
 
-    function subscribeToMessages() {
-        // Listens for new messages while you are on the page
-        supabaseClient.channel('custom-filter-channel')
-        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'Message' }, 
-        payload => appendToUI(payload.new.username, payload.new.content)).subscribe();
+        sb.channel('any').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'Message' }, 
+        p => addUI(p.new.username, p.new.content)).subscribe();
     }
 
     async function publishMessage() {
         const input = document.getElementById('msg-input');
-        const content = input.value;
-        if(!content) return;
-
-        // Saves to your 'Message' table
-        const { error } = await supabaseClient.from('Message').insert([{ username: userEmail, content: content }]);
-        if (error) {
-            alert("Could not send: " + error.message);
-        } else {
-            input.value = "";
-        }
+        if(!input.value) return;
+        await sb.from('Message').insert([{ username: userEmail, content: input.value }]);
+        input.value = "";
     }
 
-    function appendToUI(user, text) {
-        const div = document.getElementById('messages');
-        const msgDiv = document.createElement('div');
-        msgDiv.className = 'msg-item';
-        // Shows the name before the @ for a cleaner look
-        const displayName = user ? user.split('@')[0] : "User";
-        msgDiv.innerHTML = `<strong>${displayName}:</strong> ${text}`;
-        div.appendChild(msgDiv);
-        div.scrollTop = div.scrollHeight;
+    function addUI(user, text) {
+        const box = document.getElementById('messages');
+        const p = document.createElement('p');
+        p.innerHTML = `<strong>${user.split('@')[0]}:</strong> ${text}`;
+        box.appendChild(p);
+        box.scrollTop = box.scrollHeight;
     }
 </script>
-
 </body>
 </html>
