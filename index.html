@@ -12,8 +12,8 @@
         button { width: 100%; padding: 12px; background: #24b47e; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
         .hidden { display: none; }
         #chat-box { height: 250px; overflow-y: auto; border: 1px solid #eee; padding: 10px; margin: 15px 0; text-align: left; background: #fafafa; border-radius: 8px; font-size: 14px; }
-        .msg { margin-bottom: 8px; padding: 6px 10px; border-radius: 6px; background: #e8f5e9; display: inline-block; clear: both; }
-        .footer { margin-top: 20px; font-size: 12px; color: #888; border-top: 1px solid #eee; pt: 10px; }
+        .msg { margin-bottom: 8px; padding: 6px 10px; border-radius: 6px; background: #e8f5e9; display: block; width: fit-content; }
+        .footer { margin-top: 20px; font-size: 12px; color: #888; border-top: 1px solid #eee; padding-top: 10px; }
     </style>
 </head>
 <body>
@@ -34,71 +34,71 @@
     </div>
 
     <div id="chat-screen" class="hidden">
-        <h3 style="color: #24b47e; margin-bottom: 5px;">Community Chat</h3>
-        <div id="chat-box">
-            <div class="msg"><b>System:</b> Welcome to Eudes Media! Type below to start.</div>
-        </div>
+        <h3 style="color: #24b47e;">Community Chat</h3>
+        <div id="chat-box"></div>
         <div style="display: flex; gap: 5px;">
             <input type="text" id="message-input" placeholder="Type a message..." style="margin: 0;">
             <button onclick="sendMessage()" style="width: 80px; padding: 10px;">Send</button>
         </div>
     </div>
 
-    <div class="footer">
-        Eudes Media<br>
-        Contact: +256762992440
-    </div>
+    <div class="footer">Eudes Media<br>Contact: +256762992440</div>
 </div>
 
 <script>
-    // Verified Project Details
     const SUPABASE_URL = "https://kjftrwuucjdnhfwesrup.supabase.co"; 
     const SUPABASE_KEY = "sb_publishable_1PetUo8klWCLfupRq52CVg_Y_YYrzcO"; 
-    
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+    let userEmail = "";
+
     async function requestCode() {
-        const email = document.getElementById('user-email').value;
+        userEmail = document.getElementById('user-email').value;
         const btn = document.getElementById('request-btn');
-        if (!email) return alert("Please enter your email");
+        if (!userEmail) return alert("Enter email");
         btn.innerText = "Sending...";
-        
-        const { error } = await sb.auth.signInWithOtp({ email });
-        if (error) {
-            alert("Error: " + error.message);
-            btn.innerText = "Get Verification Code";
-        } else {
-            document.getElementById('login-screen').classList.add('hidden');
-            document.getElementById('code-screen').classList.remove('hidden');
-            alert("Check your Gmail!");
-        }
+        const { error } = await sb.auth.signInWithOtp({ email: userEmail });
+        if (error) { alert(error.message); btn.innerText = "Get Code"; }
+        else { document.getElementById('login-screen').classList.add('hidden'); document.getElementById('code-screen').classList.remove('hidden'); }
     }
 
     async function verifyCode() {
-        const email = document.getElementById('user-email').value;
         const token = document.getElementById('auth-code').value;
-        const { error } = await sb.auth.verifyOtp({ email, token, type: 'email' });
-
-        if (error) {
-            alert("Invalid Code. Try again.");
-        } else {
+        const { error } = await sb.auth.verifyOtp({ email: userEmail, token, type: 'email' });
+        if (error) alert("Invalid Code");
+        else {
             document.getElementById('code-screen').classList.add('hidden');
             document.getElementById('chat-screen').classList.remove('hidden');
+            loadMessages(); // Load old messages
+            listenForMessages(); // Listen for new ones
         }
     }
 
-    function sendMessage() {
-        const input = document.getElementById('message-input');
-        const chatBox = document.getElementById('chat-box');
-        if (!input.value.trim()) return;
+    async function loadMessages() {
+        const { data } = await sb.from('messages').select('*').order('created_at', { ascending: true });
+        if (data) data.forEach(m => addMessageToUI(m.username, m.content));
+    }
 
+    function listenForMessages() {
+        sb.channel('public:messages').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, 
+        payload => addMessageToUI(payload.new.username, payload.new.content)).subscribe();
+    }
+
+    async function sendMessage() {
+        const input = document.getElementById('message-input');
+        const content = input.value;
+        if (!content) return;
+        
+        await sb.from('messages').insert([{ username: userEmail, content: content }]);
+        input.value = "";
+    }
+
+    function addMessageToUI(user, text) {
+        const chatBox = document.getElementById('chat-box');
         const msgDiv = document.createElement('div');
         msgDiv.className = 'msg';
-        msgDiv.innerHTML = `<b>You:</b> ${input.value}`;
+        msgDiv.innerHTML = `<b>${user.split('@')[0]}:</b> ${text}`;
         chatBox.appendChild(msgDiv);
-        chatBox.appendChild(document.createElement('br'));
-        
-        input.value = "";
         chatBox.scrollTop = chatBox.scrollHeight;
     }
 </script>
