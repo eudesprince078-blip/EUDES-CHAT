@@ -6,12 +6,15 @@
     <title>Eudes Media Community</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #f0f2f5; }
-        .card { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 300px; text-align: center; }
-        input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
-        button { width: 100%; padding: 10px; background: #24b47e; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #ffffff; }
+        .card { background: white; padding: 2.5rem; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); width: 320px; text-align: center; border: 1px solid #f0f0f0; }
+        h2 { margin-bottom: 5px; color: #000; font-size: 28px; }
+        p { color: #444; margin-bottom: 20px; font-size: 16px; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #e0e0e0; border-radius: 8px; box-sizing: border-box; background: #f9f9fb; font-size: 14px; }
+        button { width: 100%; padding: 12px; background: #24b47e; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; transition: background 0.3s; }
+        button:hover { background: #1f9d6d; }
         .hidden { display: none; }
-        .footer { margin-top: 20px; font-size: 12px; color: #666; }
+        .footer { margin-top: 25px; font-size: 12px; color: #888; line-height: 1.5; }
     </style>
 </head>
 <body>
@@ -27,13 +30,13 @@
 
     <div id="code-screen" class="hidden">
         <p>Enter the 6-digit code sent to your Gmail</p>
-        <input type="text" id="auth-code" placeholder="000000">
+        <input type="text" id="auth-code" placeholder="000000" maxlength="6">
         <button onclick="verifyCode()">Join Chat</button>
     </div>
 
     <div id="chat-screen" class="hidden">
-        <h3>Welcome to the Chat!</h3>
-        <p>Connection Successful.</p>
+        <h3 style="color: #24b47e;">Welcome!</h3>
+        <p>You are now part of the Eudes Media Community.</p>
     </div>
 
     <div class="footer">
@@ -43,35 +46,39 @@
 </div>
 
 <script>
-    // PASTE YOUR REAL DETAILS FROM SUPABASE HERE
+    // === CONFIGURATION: PASTE YOUR DETAILS FROM SUPABASE HERE ===
     const SUPABASE_URL = "https://your-project-id.supabase.co"; 
     const SUPABASE_KEY = "your-anon-key-here";
+    // ============================================================
+
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     async function requestCode() {
         const email = document.getElementById('user-email').value;
         if (!email) return alert("Please type your email");
 
-        // FORCE: Change screen immediately so it doesn't "stop"
+        // FORCE SWITCH: Hide email, show code box immediately
         document.getElementById('login-screen').classList.add('hidden');
         document.getElementById('code-screen').classList.remove('hidden');
 
-        // Request the 6-digit OTP from Supabase
+        // Send OTP to Supabase
         const { error } = await sb.auth.signInWithOtp({ email });
 
         if (error) {
-            alert("Error: " + error.message);
-            // If it fails, go back to login
+            alert("Connection Error: " + error.message);
+            // If it fails, bring them back to the email screen
             document.getElementById('login-screen').classList.remove('hidden');
             document.getElementById('code-screen').classList.add('hidden');
         } else {
-            alert("Success! Check your Gmail.");
+            console.log("OTP sent to " + email);
         }
     }
 
     async function verifyCode() {
         const email = document.getElementById('user-email').value;
         const code = document.getElementById('auth-code').value;
+
+        if (!code) return alert("Please enter the code");
 
         const { data, error } = await sb.auth.verifyOtp({
             email,
@@ -80,8 +87,9 @@
         });
 
         if (error) {
-            alert("Invalid code. Please try again.");
+            alert("Invalid code. Check your Gmail again.");
         } else {
+            // SUCCESS: Show the final screen
             document.getElementById('code-screen').classList.add('hidden');
             document.getElementById('chat-screen').classList.remove('hidden');
         }
