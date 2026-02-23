@@ -3,110 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Eudes Media Chat</title>
+    <title>Eudes Media Community</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { font-family: sans-serif; background: #f0f2f5; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
-        #app-card { width: 90%; max-width: 400px; background: white; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); overflow: hidden; }
-        .blue-banner { background: #007bff; color: white; padding: 25px; text-align: center; font-size: 1.2rem; font-weight: bold; }
-        .padding { padding: 20px; text-align: center; }
-        input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
-        button { width: 100%; padding: 12px; border: none; border-radius: 8px; background: #28a745; color: white; cursor: pointer; font-weight: bold; font-size: 16px; }
-        #messages { height: 300px; overflow-y: auto; background: #f8f9fa; border: 1px solid #eee; margin-bottom: 10px; padding: 10px; text-align: left; border-radius: 8px; }
-        .hidden { display: none !important; }
-        .footer { margin-top: 20px; text-align: center; font-size: 14px; color: #666; }
+        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #f0f2f5; }
+        .card { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 300px; text-align: center; }
+        input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
+        button { width: 100%; padding: 10px; background: #24b47e; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .hidden { display: none; }
+        .footer { margin-top: 20px; font-size: 12px; color: #666; }
     </style>
 </head>
 <body>
 
-<div id="app-card">
-    <div class="blue-banner">EUDES MEDIA COMMUNITY</div>
-
-    <div id="login-screen" class="padding">
-        <p>Enter email to receive your 6-digit code</p>
-        <input type="email" id="user-email" placeholder="eudesprince078@gmail.com">
+<div class="card">
+    <h2>Eudes Media</h2>
+    
+    <div id="login-screen">
+        <p>Join the Community</p>
+        <input type="email" id="user-email" placeholder="Enter your email">
         <button onclick="requestCode()">Get Verification Code</button>
     </div>
 
-    <div id="code-screen" class="padding hidden">
-        <p style="color: green; font-weight: bold;">✔ Code sent to Gmail!</p>
-        <p>Enter the 6-digit code below:</p>
-        <input type="text" id="six-digit-code" placeholder="123456">
-        <button onclick="verifyMyCode()" style="background: #007bff;">Verify & Enter Chat</button>
+    <div id="code-screen" class="hidden">
+        <p>Enter the 6-digit code sent to your Gmail</p>
+        <input type="text" id="auth-code" placeholder="000000">
+        <button onclick="verifyCode()">Join Chat</button>
     </div>
 
-    <div id="chat-screen" class="padding hidden">
-        <div id="messages"></div>
-        <input type="text" id="msg-text" placeholder="Type a message...">
-        <button onclick="sendMyMsg()">Send Message</button>
-        <button onclick="location.reload()" style="background:#6c757d; margin-top:10px; font-size:12px;">Sign Out</button>
+    <div id="chat-screen" class="hidden">
+        <h3>Welcome to the Chat!</h3>
+        <p>Connection Successful.</p>
     </div>
-</div>
 
-<div class="footer">
-    Eudes Media<br>Contact: +256762992440
+    <div class="footer">
+        Eudes Media <br>
+        Contact: +256762992440
+    </div>
 </div>
 
 <script>
-    // 1. UPDATE THESE TWO LINES WITH YOUR KEYS
-    const SUPABASE_URL = "YOUR_SUPABASE_URL"; 
-    const SUPABASE_KEY = "YOUR_SUPABASE_ANON_KEY";
+    // PASTE YOUR REAL DETAILS FROM SUPABASE HERE
+    const SUPABASE_URL = "https://your-project-id.supabase.co"; 
+    const SUPABASE_KEY = "your-anon-key-here";
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // 2. REQUEST THE CODE
     async function requestCode() {
         const email = document.getElementById('user-email').value;
-        if (!email) return alert("Enter email first");
+        if (!email) return alert("Please type your email");
 
+        // FORCE: Change screen immediately so it doesn't "stop"
+        document.getElementById('login-screen').classList.add('hidden');
+        document.getElementById('code-screen').classList.remove('hidden');
+
+        // Request the 6-digit OTP from Supabase
         const { error } = await sb.auth.signInWithOtp({ email });
 
         if (error) {
-            alert(error.message);
+            alert("Error: " + error.message);
+            // If it fails, go back to login
+            document.getElementById('login-screen').classList.remove('hidden');
+            document.getElementById('code-screen').classList.add('hidden');
         } else {
-            // SUCCESS: Switch screens
-            document.getElementById('login-screen').classList.add('hidden');
-            document.getElementById('code-screen').classList.remove('hidden');
+            alert("Success! Check your Gmail.");
         }
     }
 
-    // 3. VERIFY THE CODE
-    async function verifyMyCode() {
+    async function verifyCode() {
         const email = document.getElementById('user-email').value;
-        const code = document.getElementById('six-digit-code').value;
+        const code = document.getElementById('auth-code').value;
 
-        const { error } = await sb.auth.verifyOtp({
-            email: email,
+        const { data, error } = await sb.auth.verifyOtp({
+            email,
             token: code,
             type: 'email'
         });
 
         if (error) {
-            alert("Wrong code! Check your Gmail again.");
+            alert("Invalid code. Please try again.");
         } else {
             document.getElementById('code-screen').classList.add('hidden');
             document.getElementById('chat-screen').classList.remove('hidden');
-            loadMsgs();
-            // Listen for new messages
-            sb.channel('chat').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'Message' }, loadMsgs).subscribe();
-        }
-    }
-
-    // 4. CHAT FUNCTIONS
-    async function loadMsgs() {
-        const { data } = await sb.from('Message').select('*').order('created_at', { ascending: true });
-        if (data) {
-            document.getElementById('messages').innerHTML = data.map(m => `<div><b>${m.username.split('@')[0]}:</b> ${m.content}</div>`).join('');
-            const box = document.getElementById('messages');
-            box.scrollTop = box.scrollHeight;
-        }
-    }
-
-    async function sendMyMsg() {
-        const { data: { user } } = await sb.auth.getUser();
-        const content = document.getElementById('msg-text').value;
-        if (content && user) {
-            await sb.from('Message').insert([{ username: user.email, content: content }]);
-            document.getElementById('msg-text').value = '';
         }
     }
 </script>
