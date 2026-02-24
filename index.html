@@ -3,48 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Eudes Media - Africa Connect</title>
+    <title>Eudes Chat - Powered by Eudes Media</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src='https://meet.jit.si/external_api.js'></script>
     <style>
-        :root { --primary: #004d40; --bg: #e5ddd5; }
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); display: flex; justify-content: center; height: 100vh; }
-        .app-container { width: 100%; max-width: 480px; background: white; display: flex; flex-direction: column; box-shadow: 0 0 15px rgba(0,0,0,0.2); }
+        :root { --primary: #004d40; --accent: #25d366; --bg: #e5ddd5; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); display: flex; justify-content: center; height: 100vh; overflow: hidden; }
+        .app-container { width: 100%; max-width: 480px; background: white; display: flex; flex-direction: column; box-shadow: 0 0 15px rgba(0,0,0,0.2); position: relative; }
         .top-bar { background: var(--primary); color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; }
-        .profile-section { background: #fff; padding: 15px; border-bottom: 1px solid #ddd; text-align: center; }
-        .avatar-main { width: 80px; height: 80px; border-radius: 50%; border: 3px solid var(--primary); object-fit: cover; cursor: pointer; }
-        .chat-box { flex: 1; overflow-y: auto; padding: 15px; background: #efe7dd; }
-        .msg { background: white; padding: 10px; border-radius: 10px; margin-bottom: 10px; max-width: 85%; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
-        .msg-header { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #128c7e; font-weight: bold; margin-bottom: 4px; }
-        .msg-img { width: 25px; height: 25px; border-radius: 50%; }
-        .input-area { padding: 10px; background: #f0f0f0; display: flex; gap: 10px; align-items: center; }
-        input[type="text"] { flex: 1; padding: 12px; border-radius: 25px; border: 1px solid #ddd; outline: none; }
-        .footer { font-size: 10px; text-align: center; padding: 8px; color: #999; border-top: 1px solid #eee; }
+        .profile-section { background: #fff; padding: 10px; border-bottom: 1px solid #ddd; text-align: center; }
+        .avatar-main { width: 60px; height: 60px; border-radius: 50%; border: 2px solid var(--primary); object-fit: cover; cursor: pointer; }
+        .chat-box { flex: 1; overflow-y: auto; padding: 15px; background: #efe7dd; display: flex; flex-direction: column; }
+        .msg { background: white; padding: 10px; border-radius: 10px; margin-bottom: 10px; max-width: 85%; align-self: flex-start; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+        .msg-me { align-self: flex-end; background: #dcf8c6; }
+        .msg-header { display: flex; align-items: center; gap: 8px; font-size: 11px; color: #128c7e; font-weight: bold; margin-bottom: 4px; }
+        .msg-img { width: 20px; height: 20px; border-radius: 50%; }
+        .input-area { padding: 10px; background: #f0f0f0; display: flex; gap: 8px; align-items: center; }
+        input[type="text"] { flex: 1; padding: 10px; border-radius: 20px; border: 1px solid #ddd; outline: none; }
+        .btn { border: none; background: none; font-size: 22px; cursor: pointer; padding: 5px; }
+        .footer { font-size: 10px; text-align: center; padding: 5px; color: #999; background: #f0f0f0; }
         .hidden { display: none; }
+        .ringing-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: var(--primary); color:white; display:none; flex-direction:column; align-items:center; justify-content:center; z-index:100; }
     </style>
 </head>
 <body>
 
+<div id="ring-screen" class="ringing-overlay">
+    <h2>📞 INCOMING CALL</h2>
+    <p id="caller-name">Someone is calling...</p>
+    <div style="margin-top:20px;">
+        <button onclick="answerCall()" style="background:var(--accent); color:white; border:none; padding:15px 30px; border-radius:30px; margin-right:10px;">ANSWER</button>
+        <button onclick="declineCall()" style="background:red; color:white; border:none; padding:15px 30px; border-radius:30px;">DECLINE</button>
+    </div>
+</div>
+
 <div class="app-container">
     <div class="top-bar">
-        <span>Eudes Media</span>
-        <div style="font-size: 20px;">
-            <span onclick="alert('Establishing Audio Connection...')">📞</span>
-            <span onclick="alert('Establishing Video Connection...')">🎥</span>
+        <span>Eudes Chat</span>
+        <div>
+            <span onclick="startCall('audio')" style="cursor:pointer; margin-right:15px;">📞</span>
+            <span onclick="startCall('video')" style="cursor:pointer;">🎥</span>
         </div>
     </div>
 
     <div class="profile-section">
         <input type="file" id="pic-input" class="hidden" onchange="uploadToBucket()">
-        <img id="my-pic" class="avatar-main" src="https://via.placeholder.com/80" onclick="document.getElementById('pic-input').click()">
-        <div id="display-name" style="font-weight: bold; margin-top: 8px;" onclick="setName()">Tap to set Username</div>
-        <div id="display-bio" style="font-size: 12px; color: #666; font-style: italic;" onclick="setBio()">Tap to set Africa Bio...</div>
+        <img id="my-pic" class="avatar-main" src="https://via.placeholder.com/60" onclick="document.getElementById('pic-input').click()">
+        <div id="display-name" style="font-weight: bold; font-size:14px;" onclick="setName()">Tap to set Name</div>
+        <div id="display-bio" style="font-size: 11px; color: #666;" onclick="setBio()">Tap to set Bio...</div>
     </div>
 
     <div class="chat-box" id="chat-box"></div>
 
     <div class="input-area">
-        <input type="text" id="msg-input" placeholder="Message to Africa...">
-        <button onclick="send()" style="background:var(--primary); color:white; border:none; padding:10px 20px; border-radius:20px; cursor:pointer;">Send</button>
+        <button class="btn" onmousedown="startVoice()" onmouseup="stopVoice()" ontouchstart="startVoice()" ontouchend="stopVoice()">🎤</button>
+        <input type="text" id="msg-input" placeholder="Type a message...">
+        <button class="btn" onclick="sendText()">📤</button>
     </div>
 
     <div class="footer">Eudes Media | +256762992440</div>
@@ -55,62 +69,105 @@
     const KEY = "sb_publishable_1PetUo8klWCLfupRq52CVg_Y_YYrzcO";
     const sb = supabase.createClient(URL, KEY);
 
-    let myUser = "eudesprince078@gmail.com";
-    let myName = "Prince_Africa";
-    let myAvatar = "https://via.placeholder.com/80";
+    let myUser = "user_" + Math.floor(Math.random()*1000);
+    let myName = "User_" + Math.floor(Math.random()*100);
+    let myAvatar = "https://via.placeholder.com/60";
     let myBio = "Connecting Africa";
+    let currentCallRoom = "";
+    let ringtone = new Audio('https://www.soundjay.com/phone/phone-calling-1.mp3');
 
+    // --- SETUP & LOAD ---
     window.onload = async () => {
-        const { data } = await sb.from('Message').select('*').order('created_at', {ascending: true});
-        if(data) data.forEach(m => addUI(m.display_name || m.username, m.content, m.avatar));
+        const { data } = await sb.from('Message').select('*').order('created_at', {ascending: true}).limit(50);
+        if(data) data.forEach(m => addUI(m));
 
-        sb.channel('any').on('postgres_changes', {event:'INSERT', schema:'public', table:'Message'}, 
-        p => addUI(p.new.display_name || p.new.username, p.new.content, p.new.avatar)).subscribe();
+        sb.channel('chat').on('postgres_changes', {event:'INSERT', schema:'public', table:'Message'}, p => {
+            if(p.new.username === "SYS_CALL" && p.new.display_name !== myName) {
+                showRingScreen(p.new.display_name, p.new.call_room);
+            } else {
+                addUI(p.new);
+            }
+        }).subscribe();
     };
 
-    function setName() {
-        const n = prompt("Enter your African Community name:");
-        if(n) { myName = n; document.getElementById('display-name').innerText = n; }
-    }
-
-    function setBio() {
-        const b = prompt("Enter your bio:");
-        if(b) { myBio = b; document.getElementById('display-bio').innerText = b; }
-    }
-
-    async function uploadToBucket() {
-        const file = document.getElementById('pic-input').files[0];
-        if(!file) return;
-        const path = `user_${Date.now()}.png`;
-        // Uses your 'profiles' bucket
-        const { error } = await sb.storage.from('profiles').upload(path, file);
-        if(error) return alert(error.message);
-        const { data } = sb.storage.from('profiles').getPublicUrl(path);
-        myAvatar = data.publicUrl;
-        document.getElementById('my-pic').src = myAvatar;
-    }
-
-    async function send() {
+    // --- MESSAGING ---
+    async function sendText() {
         const text = document.getElementById('msg-input').value;
         if(!text) return;
-        await sb.from('Message').insert([{ 
-            username: myUser, 
-            display_name: myName,
-            content: text, 
-            avatar: myAvatar,
-            description: myBio 
-        }]);
+        await sb.from('Message').insert([{ username: myUser, display_name: myName, content: text, avatar: myAvatar }]);
         document.getElementById('msg-input').value = "";
     }
 
-    function addUI(user, text, img) {
+    // --- VOICE NOTES ---
+    let recorder, audioChunks = [];
+    async function startVoice() {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        recorder = new MediaRecorder(stream);
+        recorder.ondataavailable = e => audioChunks.push(e.data);
+        recorder.start();
+        document.getElementById('msg-input').placeholder = "RECORDING...";
+    }
+
+    async function stopVoice() {
+        recorder.stop();
+        document.getElementById('msg-input').placeholder = "Type a message...";
+        recorder.onstop = async () => {
+            const blob = new Blob(audioChunks, { type: 'audio/mp3' });
+            const path = `voice_${Date.now()}.mp3`;
+            await sb.storage.from('profiles').upload(path, blob);
+            const { data } = sb.storage.from('profiles').getPublicUrl(path);
+            await sb.from('Message').insert([{ username: myUser, display_name: myName, content: "🎤 Voice Note", voice_url: data.publicUrl, avatar: myAvatar }]);
+            audioChunks = [];
+        };
+    }
+
+    // --- CALLING SYSTEM ---
+    async function startCall(type) {
+        const room = "Eudes_" + Math.random().toString(36).substring(7);
+        await sb.from('Message').insert([{ username: "SYS_CALL", display_name: myName, content: "Incoming Call...", call_room: room }]);
+        window.open(`https://meet.jit.si/${room}`, '_blank');
+    }
+
+    function showRingScreen(caller, room) {
+        currentCallRoom = room;
+        document.getElementById('caller-name').innerText = caller + " is calling...";
+        document.getElementById('ring-screen').style.display = 'flex';
+        ringtone.play();
+    }
+
+    function answerCall() {
+        ringtone.pause();
+        window.open(`https://meet.jit.si/${currentCallRoom}`, '_blank');
+        document.getElementById('ring-screen').style.display = 'none';
+    }
+
+    function declineCall() {
+        ringtone.pause();
+        document.getElementById('ring-screen').style.display = 'none';
+    }
+
+    // --- UI HELPERS ---
+    function addUI(m) {
         const box = document.getElementById('chat-box');
         const div = document.createElement('div');
-        div.className = 'msg';
-        const pic = img || 'https://via.placeholder.com/25';
-        div.innerHTML = `<div class="msg-header"><img src="${pic}" class="msg-img">${user}</div>${text}`;
+        div.className = `msg ${m.display_name === myName ? 'msg-me' : ''}`;
+        
+        let content = m.content;
+        if(m.voice_url) content = `<audio controls src="${m.voice_url}" style="width:200px;"></audio>`;
+        
+        div.innerHTML = `<div class="msg-header"><img src="${m.avatar || myAvatar}" class="msg-img">${m.display_name}</div>${content}`;
         box.appendChild(div);
         box.scrollTop = box.scrollHeight;
+    }
+
+    function setName() { myName = prompt("Enter Name:") || myName; document.getElementById('display-name').innerText = myName; }
+    function setBio() { myBio = prompt("Enter Bio:") || myBio; document.getElementById('display-bio').innerText = myBio; }
+    async function uploadToBucket() {
+        const file = document.getElementById('pic-input').files[0];
+        const path = `avatar_${Date.now()}.png`;
+        await sb.storage.from('profiles').upload(path, file);
+        const { data } = sb.storage.from('profiles').getPublicUrl(path);
+        myAvatar = data.publicUrl; document.getElementById('my-pic').src = myAvatar;
     }
 </script>
 </body>
