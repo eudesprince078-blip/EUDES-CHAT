@@ -1,113 +1,141 @@
-<script>
-const S_URL = "https://kjftrwuucjdnhfwesrup.supabase.co";
-const S_KEY = "sb_publishable_1PetUo8klWCLfupRq52CVg_Y_YYrzcO";
-const sb = supabase.createClient(S_URL, S_KEY);
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Eudes Chat Pro</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root { --eudes-blue: #0056b3; --white: #ffffff; --bg: #f4f7f9; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .auth-card { background: var(--white); padding: 30px; border-radius: 15px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1); display: none; }
+        input { width: 100%; margin-bottom: 12px; padding: 14px; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; outline: none; font-size: 16px; }
+        .btn-blue { background: var(--eudes-blue); color: var(--white); border: none; padding: 14px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; }
+        .toggle-link { color: var(--eudes-blue); cursor: pointer; font-size: 13px; display: block; margin-top: 15px; text-decoration: underline; }
+        #chat-ui { display: none; width: 100%; height: 100%; background: white; flex-direction: column; }
+        #loading-screen { color: var(--eudes-blue); font-weight: bold; }
+    </style>
+</head>
+<body>
 
-let isLoginMode = true;
-let isRecovery = false;
+<div id="loading-screen">Checking session...</div>
 
-/* 🔥 IMPORTANT FIX */
-window.addEventListener("load", async () => {
-    const { data } = await sb.auth.getSession();
+<div id="auth-ui" class="auth-card">
+    <h2 id="auth-title" style="color: var(--eudes-blue); margin-top: 0;">LOG IN</h2>
     
-    if (window.location.hash.includes("type=recovery")) {
-        isRecovery = true;
-        activateRecoveryMode();
-    }
+    <div id="reg-fields" style="display: none;">
+        <input type="text" id="regName" placeholder="Full Name">
+        <input type="text" id="regPhone" placeholder="Phone Number (10 digits)">
+    </div>
 
-    if (data.session && !isRecovery) {
-        showChatUI();
-    }
-});
+    <input type="email" id="email" placeholder="Email Address">
+    <input type="password" id="pass" placeholder="Password">
+    <input type="password" id="passConfirm" placeholder="Confirm New Password" style="display:none;">
+    
+    <button id="mainBtn" class="btn-blue" onclick="handleAuth()">LOG IN</button>
+    
+    <div id="auth-options">
+        <span id="toggleText" class="toggle-link" onclick="toggleAuthMode()">New here? Register Account</span>
+        <span class="toggle-link" onclick="handleForgotPassword()" style="text-decoration: none; margin-top: 5px;">Forgot Password?</span>
+    </div>
+    
+    <p style="font-size: 11px; color: #888; margin-top: 20px;">Eudes Media Support: +256762992440</p>
+</div>
 
-/* Detect auth changes */
-sb.auth.onAuthStateChange((event, session) => {
-    if (event === "PASSWORD_RECOVERY") {
-        isRecovery = true;
-        activateRecoveryMode();
-    }
-    if (event === "SIGNED_IN" && !isRecovery) {
-        showChatUI();
-    }
-});
+<div id="chat-ui">
+    <div style="background: var(--eudes-blue); color: white; padding: 15px; text-align: center; font-weight: bold;">Eudes Chat Pro</div>
+    <div id="chatbox" style="flex: 1; padding: 15px; overflow-y: auto;"></div>
+    <div style="padding: 10px; border-top: 1px solid #eee; text-align: center; font-size: 12px;">Eudes Media | +256762992440</div>
+</div>
 
-/* 🔹 Activate Reset Mode */
-function activateRecoveryMode() {
-    document.getElementById('auth-title').innerText = "SET NEW PASSWORD";
-    document.getElementById('mainBtn').innerText = "SAVE NEW PASSWORD";
-    document.getElementById('email').style.display = "none";
-    document.getElementById('passConfirm').style.display = "block";
-    document.getElementById('auth-options').style.display = "none";
-    document.getElementById('reg-fields').style.display = "none";
-}
+<script>
+    const S_URL = "https://kjftrwuucjdnhfwesrup.supabase.co";
+    const S_KEY = "sb_publishable_1PetUo8klWCLfupRq52CVg_Y_YYrzcO";
+    const sb = supabase.createClient(S_URL, S_KEY);
 
-/* 🔹 Show Chat */
-function showChatUI() {
-    document.getElementById('auth-ui').style.display = 'none';
-    document.getElementById('chat-ui').style.display = 'flex';
-}
+    let isLoginMode = true;
+    let isRecovery = false;
 
-/* Toggle login/register */
-function toggleAuthMode() {
-    if(isRecovery) return;
-    isLoginMode = !isLoginMode;
-    document.getElementById('auth-title').innerText = isLoginMode ? "LOG IN" : "REGISTER";
-    document.getElementById('mainBtn').innerText = isLoginMode ? "LOG IN" : "CREATE ACCOUNT";
-    document.getElementById('reg-fields').style.display = isLoginMode ? "none" : "block";
-    document.getElementById('passConfirm').style.display = isLoginMode ? "none" : "block";
-}
-
-/* Handle Auth */
-async function handleAuth() {
-    const email = document.getElementById('email').value;
-    const pass = document.getElementById('pass').value;
-    const passConfirm = document.getElementById('passConfirm').value;
-
-    if (isRecovery) {
-        if (pass !== passConfirm) return alert("Passwords do not match!");
+    // THE FINAL FIX: Check the URL immediately before showing ANY UI
+    async function init() {
+        const hash = window.location.hash;
         
-        const { error } = await sb.auth.updateUser({ password: pass });
-        if (error) alert(error.message);
-        else {
-            alert("Password updated successfully!");
-            window.location.href = window.location.origin;
+        // If the URL has recovery info, set recovery mode FIRST
+        if (hash && (hash.includes("type=recovery") || hash.includes("access_token="))) {
+            isRecovery = true;
+            showRecoveryUI();
+        }
+
+        sb.auth.onAuthStateChange(async (event, session) => {
+            document.getElementById('loading-screen').style.display = 'none';
+
+            if (event === "PASSWORD_RECOVERY") {
+                isRecovery = true;
+                showRecoveryUI();
+            } else if (session && !isRecovery) {
+                document.getElementById('auth-ui').style.display = 'none';
+                document.getElementById('chat-ui').style.display = 'flex';
+            } else if (!isRecovery) {
+                document.getElementById('auth-ui').style.display = 'block';
+            }
+        });
+    }
+
+    function showRecoveryUI() {
+        document.getElementById('loading-screen').style.display = 'none';
+        document.getElementById('auth-ui').style.display = 'block';
+        document.getElementById('auth-title').innerText = "SET NEW PASSWORD";
+        document.getElementById('mainBtn').innerText = "SAVE NEW PASSWORD";
+        document.getElementById('email').style.display = "none";
+        document.getElementById('passConfirm').style.display = "block";
+        document.getElementById('auth-options').style.display = "none";
+        document.getElementById('reg-fields').style.display = "none";
+    }
+
+    function toggleAuthMode() {
+        if(isRecovery) return;
+        isLoginMode = !isLoginMode;
+        document.getElementById('auth-title').innerText = isLoginMode ? "LOG IN" : "REGISTER";
+        document.getElementById('mainBtn').innerText = isLoginMode ? "LOG IN" : "CREATE ACCOUNT";
+        document.getElementById('reg-fields').style.display = isLoginMode ? "none" : "block";
+        document.getElementById('passConfirm').style.display = isLoginMode ? "none" : "block";
+    }
+
+    async function handleAuth() {
+        const email = document.getElementById('email').value;
+        const pass = document.getElementById('pass').value;
+        const passConfirm = document.getElementById('passConfirm').value;
+
+        if (isRecovery) {
+            if (pass !== passConfirm) return alert("Passwords do not match!");
+            const { error } = await sb.auth.updateUser({ password: pass });
+            if (error) alert(error.message);
+            else { alert("Success! Password updated."); window.location.href = window.location.origin; }
+        } else if (isLoginMode) {
+            const { error } = await sb.auth.signInWithPassword({ email, password: pass });
+            if (error) alert(error.message);
+        } else {
+            const name = document.getElementById('regName').value;
+            const phone = document.getElementById('regPhone').value;
+            if (phone.length !== 10) return alert("Phone must be 10 digits!");
+            const { error } = await sb.auth.signUp({ 
+                email, password: pass, 
+                options: { data: { full_name: name, phone_number: phone } } 
+            });
+            if (error) alert(error.message);
+            else alert("Verify your email to continue!");
         }
     }
 
-    else if (isLoginMode) {
-        const { error } = await sb.auth.signInWithPassword({ email, password: pass });
+    async function handleForgotPassword() {
+        const email = document.getElementById('email').value;
+        if (!email) return alert("Please type your email address.");
+        const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: window.location.href });
         if (error) alert(error.message);
+        else alert("A reset link has been sent to your email!");
     }
 
-    else {
-        const name = document.getElementById('regName').value;
-        const phone = document.getElementById('regPhone').value;
-        if (phone.length !== 10) return alert("Phone must be exactly 10 digits!");
-
-        const { error } = await sb.auth.signUp({
-            email,
-            password: pass,
-            options: {
-                emailRedirectTo: window.location.origin,
-                data: { full_name: name, phone_number: phone }
-            }
-        });
-
-        if (error) alert(error.message);
-        else alert("Verify your email to continue!");
-    }
-}
-
-/* Forgot Password */
-async function handleForgotPassword() {
-    const email = document.getElementById('email').value;
-    if (!email) return alert("Please type your email address.");
-
-    const { error } = await sb.auth.resetPasswordForEmail(email, {
-        redirectTo: window.location.origin
-    });
-
-    if (error) alert(error.message);
-    else alert("Reset link sent to your email!");
-}
+    init(); // Start the app logic
 </script>
+</body>
+</html>
