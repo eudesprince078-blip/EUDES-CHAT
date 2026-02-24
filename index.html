@@ -2,134 +2,111 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Eudes Chat</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Eudes Chat Pro</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --blue: #007bff; --dark: #004d40; --light: #f4f7f6; }
-        body { font-family: sans-serif; margin: 0; background: var(--light); }
-        .app { max-width: 500px; margin: auto; height: 100vh; display: flex; flex-direction: column; background: white; }
-        .header { background: var(--dark); color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
-        .profile-bar { padding: 10px; border-bottom: 1px solid #eee; text-align: center; background: #fff; }
-        .profile-pic { width: 50px; height: 50px; border-radius: 50%; background: #ddd; object-fit: cover; border: 2px solid var(--blue); }
-        .chat-area { flex: 1; overflow-y: auto; padding: 15px; background: #e5ddd5; }
-        .msg { background: white; padding: 10px; border-radius: 8px; margin-bottom: 10px; width: fit-content; max-width: 80%; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
-        .msg-me { margin-left: auto; background: #dcf8c6; }
-        .input-bar { padding: 10px; display: flex; align-items: center; gap: 10px; background: #f0f0f0; }
-        input { flex: 1; padding: 12px; border-radius: 25px; border: 1px solid #ccc; outline: none; }
-        .icon-btn { font-size: 24px; cursor: pointer; background: none; border: none; }
-        .footer-tag { font-size: 10px; text-align: center; color: gray; padding: 5px; }
+        /* Updated to Brand Colors: White and Blue */
+        :root { --eudes-blue: #0056b3; --eudes-light-blue: #e7f3ff; --white: #ffffff; --bg: #f4f7f9; }
+        
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; background: var(--bg); height: 100vh; display: flex; flex-direction: column; }
+        #auth-ui, #chat-ui { height: 100%; display: none; flex-direction: column; }
+        
+        .header { background: var(--eudes-blue); color: var(--white); padding: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .chat-box { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 8px; }
+        
+        /* Message Bubbles in White and Blue */
+        .msg { padding: 10px 14px; border-radius: 12px; max-width: 75%; font-size: 15px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .msg-me { align-self: flex-end; background: var(--eudes-blue); color: var(--white); }
+        .msg-them { align-self: flex-start; background: var(--white); color: #333; border: 1px solid #dee2e6; }
+        
+        .input-area { background: var(--white); padding: 12px; display: flex; align-items: center; gap: 10px; border-top: 1px solid #ddd; }
+        input { flex: 1; border: 1px solid #ced4da; padding: 12px; border-radius: 25px; outline: none; }
+        .btn-send { background: var(--eudes-blue); color: var(--white); border: none; padding: 10px 18px; border-radius: 20px; cursor: pointer; font-weight: bold; }
+        
+        .auth-card { background: var(--white); padding: 30px; margin: auto; border-radius: 15px; width: 85%; max-width: 380px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .footer { font-size: 10px; text-align: center; color: #666; padding: 8px; background: var(--white); border-top: 1px solid #eee; }
     </style>
 </head>
 <body>
 
-<div class="app">
+<div id="auth-ui" style="display: flex;">
+    <div class="auth-card">
+        <h2 style="color: var(--eudes-blue); margin-top: 0;">EUDES MEDIA</h2>
+        <p style="font-size: 14px; color: #555;">Sign up with Email to chat via Phone Number</p>
+        <input type="email" id="email" placeholder="Email Address" style="width: 90%; margin-bottom: 10px;"><br>
+        <input type="password" id="pass" placeholder="Password" style="width: 90%; margin-bottom: 20px;"><br>
+        <button onclick="handleAuth('up')" style="background: var(--eudes-blue); color: white; border: none; padding: 12px; width: 100%; border-radius: 5px; cursor: pointer;">GET STARTED</button>
+    </div>
+</div>
+
+<div id="chat-ui">
     <div class="header">
-        <strong>EUDES CHAT</strong>
-        <div>
-            <span class="icon-btn" onclick="makeCall('voice')">📞</span>
-            <span class="icon-btn" onclick="makeCall('video')">🎥</span>
-        </div>
+        <strong>Eudes Chat</strong>
+        <span onclick="findContact()" style="cursor: pointer; font-size: 18px;">🔍 Find Number</span>
     </div>
-
-    <div class="profile-bar" id="setup">
-        <img id="my-avatar" class="profile-pic" src="https://ui-avatars.com/api/?name=User" onclick="uploadPic()">
-        <div id="user-info" style="font-weight: bold; margin-top:5px;">Loading...</div>
-        <button onclick="editProfile()" style="font-size: 10px;">Edit Profile</button>
+    <div id="chatbox" class="chat-box"></div>
+    <div class="input-area">
+        <input type="text" id="msgInput" placeholder="Type a message...">
+        <button class="btn-send" onclick="sendMsg()">SEND</button>
     </div>
-
-    <div class="chat-area" id="chatbox"></div>
-
-    <div class="input-bar">
-        <button class="icon-btn" id="mic" ontouchstart="startRec()" ontouchend="stopRec()" onmousedown="startRec()" onmouseup="stopRec()">🎤</button>
-        <input type="text" id="text-in" placeholder="Message...">
-        <button class="icon-btn" onclick="sendMsg()">📤</button>
-    </div>
-    <div class="footer-tag">Eudes Media | +256762992440</div>
+    <div class="footer">Eudes Media | Brand: Blue & White | +256762992440</div>
 </div>
 
 <script>
+    // Config and Supabase logic remains same as previous version...
     const S_URL = "https://kjftrwuucjdnhfwesrup.supabase.co";
     const S_KEY = "sb_publishable_1PetUo8klWCLfupRq52CVg_Y_YYrzcO";
     const sb = supabase.createClient(S_URL, S_KEY);
 
-    let myName = localStorage.getItem('eudes_name') || "";
-    let myPic = localStorage.getItem('eudes_pic') || "https://ui-avatars.com/api/?name=E";
+    let myProfile = null;
+    let activePartner = null;
 
-    if (!myName) {
-        myName = prompt("Welcome to Eudes Chat! Enter your name to start:") || "Guest";
-        localStorage.setItem('eudes_name', myName);
-    }
-    document.getElementById('user-info').innerText = myName;
-    document.getElementById('my-avatar').src = myPic;
-
-    // Load Messages
-    async function load() {
-        let { data } = await sb.from('Message').select('*').order('created_at', {ascending: true});
-        document.getElementById('chatbox').innerHTML = "";
-        if(data) data.forEach(addMsg);
-    }
-    load();
-
-    // Listen for new messages
-    sb.channel('any').on('postgres_changes', {event:'INSERT', schema:'public', table:'Message'}, p => addMsg(p.new)).subscribe();
-
-    function addMsg(m) {
-        const div = document.createElement('div');
-        div.className = `msg ${m.display_name === myName ? 'msg-me' : ''}`;
-        
-        let html = `<small style="color:blue; display:block;">${m.display_name}</small>`;
-        if (m.voice_url) {
-            html += `<audio controls src="${m.voice_url}" style="width:180px;"></audio>`;
-        } else {
-            html += `<span>${m.content}</span>`;
+    sb.auth.onAuthStateChange(async (event, session) => {
+        if (session) {
+            let { data: profile } = await sb.from('profiles').select('*').eq('id', session.user.id).single();
+            if (!profile) {
+                const phone = prompt("Enter your Phone Number (+256...):");
+                const name = prompt("Enter your Name:");
+                const { data: newP } = await sb.from('profiles').insert([{ id: session.user.id, email: session.user.email, phone: phone, username: name }]).select().single();
+                myProfile = newP;
+            } else { myProfile = profile; }
+            document.getElementById('auth-ui').style.display = 'none';
+            document.getElementById('chat-ui').style.display = 'flex';
         }
-        div.innerHTML = html;
-        const cb = document.getElementById('chatbox');
-        cb.appendChild(div);
-        cb.scrollTop = cb.scrollHeight;
+    });
+
+    async function handleAuth(type) {
+        const e = document.getElementById('email').value;
+        const p = document.getElementById('pass').value;
+        await sb.auth.signUp({ email: e, password: p });
+    }
+
+    async function findContact() {
+        const p = prompt("Enter friend's number:");
+        const { data } = await sb.from('profiles').select('*').eq('phone', p).single();
+        if(data) { activePartner = data; alert("Connected to " + data.username); }
     }
 
     async function sendMsg() {
-        const val = document.getElementById('text-in').value;
-        if (!val) return;
-        await sb.from('Message').insert([{ display_name: myName, content: val, avatar: myPic }]);
-        document.getElementById('text-in').value = "";
+        const text = document.getElementById('msgInput').value;
+        if(!activePartner || !text) return;
+        await sb.from('Message').insert([{ sender_id: myProfile.id, receiver_id: activePartner.phone, content: text }]);
+        document.getElementById('msgInput').value = "";
+        loadHistory();
     }
 
-    function makeCall(type) {
-        const room = "Eudes_" + Math.floor(Math.random()*1000);
-        const link = `https://meet.jit.si/${room}`;
-        sb.from('Message').insert([{ display_name: myName, content: `Join my ${type} call: ${link}` }]);
-        window.open(link, '_blank');
-    }
-
-    // Voice Recorder
-    let rec;
-    let chunks = [];
-    async function startRec() {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        rec = new MediaRecorder(stream);
-        rec.ondataavailable = e => chunks.push(e.data);
-        rec.start();
-        document.getElementById('mic').style.color = "red";
-    }
-    async function stopRec() {
-        rec.stop();
-        document.getElementById('mic').style.color = "black";
-        rec.onstop = async () => {
-            const blob = new Blob(chunks, { type: 'audio/mp3' });
-            const file = `v_${Date.now()}.mp3`;
-            await sb.storage.from('profiles').upload(file, blob);
-            const { data } = sb.storage.from('profiles').getPublicUrl(file);
-            await sb.from('Message').insert([{ display_name: myName, content: "🎤 Voice Note", voice_url: data.publicUrl }]);
-            chunks = [];
-        };
-    }
-
-    function editProfile() {
-        const n = prompt("Change name:", myName);
-        if(n) { myName = n; localStorage.setItem('eudes_name', n); location.reload(); }
+    async function loadHistory() {
+        const { data } = await sb.from('Message').select('*').or(`receiver_id.eq.${myProfile.phone},sender_id.eq.${myProfile.id}`);
+        const box = document.getElementById('chatbox');
+        box.innerHTML = "";
+        data.forEach(m => {
+            const d = document.createElement('div');
+            d.className = `msg ${m.sender_id === myProfile.id ? 'msg-me' : 'msg-them'}`;
+            d.innerText = m.content;
+            box.appendChild(d);
+        });
+        box.scrollTop = box.scrollHeight;
     }
 </script>
 </body>
