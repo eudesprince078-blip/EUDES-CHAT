@@ -2,53 +2,56 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Eudes Chat Pro</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --eudes-blue: #0056b3; --white: #ffffff; --bg: #f0f2f5; }
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); height: 100vh; display: flex; flex-direction: column; }
+        :root { --eudes-blue: #0056b3; --white: #ffffff; --bg: #f4f7f9; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         
-        /* Header & Navigation */
-        .header { background: var(--eudes-blue); color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; }
-        .actions i { margin-left: 20px; cursor: pointer; font-size: 1.2rem; transition: 0.3s; }
-        .actions i:hover { color: #ccc; }
+        /* Header */
+        .header { background: var(--eudes-blue); color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; z-index: 100; }
+        .header-icons i { margin-left: 15px; cursor: pointer; }
 
-        /* Chat Area */
-        #chatbox { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
-        .msg { padding: 10px 15px; border-radius: 12px; max-width: 75%; font-size: 15px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
-        .sent { align-self: flex-end; background: var(--eudes-blue); color: white; }
-        .received { align-self: flex-start; background: var(--white); color: #333; }
-
-        /* Input Area with Media Buttons */
-        .input-area { background: var(--white); padding: 15px; display: flex; align-items: center; gap: 10px; border-top: 1px solid #ddd; }
-        .input-area input { flex: 1; padding: 12px; border-radius: 25px; border: 1px solid #ccc; outline: none; }
-        .media-btn { color: var(--eudes-blue); font-size: 1.4rem; cursor: pointer; }
+        /* Chat & Avatars */
+        #chatbox { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 15px; background: #e5ddd5; }
+        .msg-row { display: flex; align-items: flex-end; gap: 8px; }
+        .msg-row.sent { flex-direction: row-reverse; }
         
-        /* Footer */
-        .footer { font-size: 11px; text-align: center; color: #777; padding: 10px; background: #fff; }
+        .avatar { width: 35px; height: 35px; border-radius: 50%; background: var(--eudes-blue); color: white; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; overflow: hidden; flex-shrink: 0; }
+        .avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+        .msg-bubble { padding: 10px 14px; border-radius: 18px; max-width: 70%; font-size: 15px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+        .sent .msg-bubble { background: var(--eudes-blue); color: white; border-bottom-right-radius: 2px; }
+        .received .msg-bubble { background: var(--white); color: #333; border-bottom-left-radius: 2px; }
+
+        /* Input Fix for Keyboard */
+        .input-area { background: var(--white); padding: 10px; display: flex; align-items: center; gap: 10px; border-top: 1px solid #ddd; padding-bottom: calc(10px + env(safe-area-inset-bottom)); }
+        #msgInput { flex: 1; padding: 12px 15px; border-radius: 25px; border: 1px solid #ccc; font-size: 16px; outline: none; -webkit-appearance: none; }
+        
+        .footer { font-size: 10px; text-align: center; color: #888; padding: 5px; background: #fff; }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <span>EUDES CHAT PRO</span>
-    <div class="actions">
-        <i class="fas fa-phone" onclick="startCall('audio')"></i>
-        <i class="fas fa-video" onclick="startCall('video')"></i>
+    <div style="display:flex; align-items:center; gap:10px;">
+        <div class="avatar" id="myAvatarHeader">E</div>
+        <span style="font-size:14px;">EUDES MEDIA</span>
+    </div>
+    <div class="header-icons">
+        <i class="fas fa-video" onclick="startVideo()"></i>
         <i class="fas fa-sign-out-alt" onclick="logout()"></i>
     </div>
 </div>
 
-<div id="chatbox">
-    <div class="msg received">Welcome to Eudes Media. How can we help you today?</div>
-</div>
+<div id="chatbox"></div>
 
 <div class="input-area">
-    <i class="fas fa-microphone media-btn" onclick="startVoiceNote()"></i>
-    <input type="text" id="msgInput" placeholder="Type message..." onkeypress="if(event.key==='Enter') sendMsg()">
-    <i class="fas fa-paper-plane media-btn" onclick="sendMsg()"></i>
+    <button style="background:none; border:none; color:var(--eudes-blue); font-size:20px;" onclick="uploadPic()"><i class="fas fa-camera"></i></button>
+    <input type="text" id="msgInput" placeholder="Type message..." autocomplete="off">
+    <button style="background:none; border:none; color:var(--eudes-blue); font-size:20px;" onclick="sendMsg()"><i class="fas fa-paper-plane"></i></button>
 </div>
 
 <div class="footer">Eudes Media Support: +256762992440</div>
@@ -60,11 +63,14 @@
 
     let user = null;
 
-    // Load Session
     async function init() {
         const { data } = await sb.auth.getSession();
-        if (!data.session) return window.location.href = "index.html"; 
+        if (!data.session) return location.reload();
         user = data.session.user;
+        
+        // Set header initial
+        document.getElementById('myAvatarHeader').innerText = user.email[0].toUpperCase();
+        
         loadMessages();
         subscribe();
     }
@@ -73,11 +79,15 @@
         const input = document.getElementById('msgInput');
         if (!input.value.trim()) return;
         
-        const { error } = await sb.from('messages').insert([
-            { text: input.value, user_id: user.id, user_name: user.email.split('@')[0] }
+        await sb.from('messages').insert([
+            { 
+                text: input.value, 
+                user_id: user.id, 
+                user_name: "Prince Eudes",
+                avatar_url: null // We will add logic to change this later
+            }
         ]);
-        
-        if (!error) input.value = '';
+        input.value = '';
     }
 
     async function loadMessages() {
@@ -86,25 +96,30 @@
             const chatbox = document.getElementById('chatbox');
             chatbox.innerHTML = '';
             data.forEach(msg => {
-                const div = document.createElement('div');
-                div.className = `msg ${msg.user_id === user.id ? 'sent' : 'received'}`;
-                div.innerText = msg.text;
-                chatbox.appendChild(div);
+                const isMe = msg.user_id === user.id;
+                const initial = (msg.user_name || 'U')[0].toUpperCase();
+                
+                const html = `
+                    <div class="msg-row ${isMe ? 'sent' : 'received'}">
+                        <div class="avatar">${msg.avatar_url ? `<img src="${msg.avatar_url}">` : initial}</div>
+                        <div class="msg-bubble">${msg.text}</div>
+                    </div>
+                `;
+                chatbox.innerHTML += html;
             });
             chatbox.scrollTop = chatbox.scrollHeight;
         }
     }
 
     function subscribe() {
-        sb.channel('public:messages').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
-            loadMessages();
-        }).subscribe();
+        sb.channel('any').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, loadMessages).subscribe();
     }
 
-    // Multimedia Functions
-    function startCall(type) { alert("Starting " + type + " call... (Eudes Media Feature Active)"); }
-    function startVoiceNote() { alert("Recording voice note..."); }
+    function startVideo() { window.open("https://meet.jit.si/EudesMediaChat", "_blank"); }
+    function uploadPic() { alert("Profile picture upload coming soon!"); }
     async function logout() { await sb.auth.signOut(); location.reload(); }
+
+    document.getElementById('msgInput').addEventListener('keypress', e => { if(e.key==='Enter') sendMsg(); });
 
     init();
 </script>
