@@ -3,23 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Eudes Media Recovery</title>
+    <title>Eudes Chat Pro</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { font-family: sans-serif; background: #f4f7f9; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-        .card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); text-align: center; width: 350px; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
-        button { background: #0056b3; color: white; border: none; padding: 12px; width: 100%; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        :root { --blue: #0056b3; --white: #ffffff; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f9; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .card { background: var(--white); padding: 30px; border-radius: 15px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        input { width: 100%; margin-bottom: 12px; padding: 14px; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; font-size: 16px; outline: none; }
+        .btn { background: var(--blue); color: white; border: none; padding: 14px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; }
+        .footer { font-size: 11px; color: #888; margin-top: 20px; }
     </style>
 </head>
 <body>
 
-<div class="card" id="box">
-    <h2 id="title" style="color: #0056b3;">Eudes Media</h2>
-    <div id="ui">
-        <p>Checking link...</p>
+<div id="auth-ui" class="card">
+    <h2 id="title" style="color: var(--blue); margin-top: 0;">LOG IN</h2>
+    <div id="fields">
+        <input type="email" id="email" placeholder="Email Address">
+        <input type="password" id="pass" placeholder="Password">
     </div>
-    <p style="font-size: 12px; color: #888; margin-top: 20px;">Support: +256762992440</p>
+    <button id="mainBtn" class="btn" onclick="handleAction()">LOG IN</button>
+    <div id="options" style="margin-top:15px;">
+        <span style="color:var(--blue); cursor:pointer; font-size:13px;" onclick="handleResetRequest()">Forgot Password?</span>
+    </div>
+    <p class="footer">Eudes Media Support: +256762992440</p>
 </div>
 
 <script>
@@ -27,61 +34,54 @@
     const S_KEY = "sb_publishable_1PetUo8klWCLfupRq52CVg_Y_YYrzcO";
     const sb = supabase.createClient(S_URL, S_KEY);
 
-    // EMERGENCY CHECK: Look at the URL bar immediately
-    function checkLink() {
-        const url = window.location.href;
-        if (url.includes("type=recovery") || url.includes("access_token=")) {
-            renderResetForm();
-        } else {
-            renderLoginForm();
+    let isRecoveryMode = false;
+
+    // 1. SECURE CHECK: This runs before the user sees anything
+    function init() {
+        const hash = window.location.hash;
+        if (hash.includes("type=recovery") || hash.includes("access_token=")) {
+            isRecoveryMode = true;
+            renderRecoveryUI();
         }
     }
 
-    function renderResetForm() {
-        document.getElementById('title').innerText = "NEW PASSWORD";
-        document.getElementById('ui').innerHTML = `
+    function renderRecoveryUI() {
+        document.getElementById('title').innerText = "SET NEW PASSWORD";
+        document.getElementById('mainBtn').innerText = "UPDATE PASSWORD";
+        document.getElementById('options').style.display = "none";
+        document.getElementById('fields').innerHTML = `
             <input type="password" id="p1" placeholder="New Password">
             <input type="password" id="p2" placeholder="Confirm Password">
-            <button onclick="saveNewPass()">SAVE PASSWORD</button>
         `;
     }
 
-    function renderLoginForm() {
-        document.getElementById('title').innerText = "LOG IN";
-        document.getElementById('ui').innerHTML = `
-            <input type="email" id="e" placeholder="Email">
-            <input type="password" id="p" placeholder="Password">
-            <button onclick="login()">LOG IN</button>
-            <p style="font-size:12px; color:#0056b3; cursor:pointer;" onclick="reset()">Forgot Password?</p>
-        `;
+    async function handleAction() {
+        if (isRecoveryMode) {
+            const p1 = document.getElementById('p1').value;
+            const p2 = document.getElementById('p2').value;
+            if (p1 !== p2) return alert("Passwords do not match!");
+            const { error } = await sb.auth.updateUser({ password: p1 });
+            if (error) alert(error.message);
+            else { alert("Success! Log in with your new password."); window.location.href = window.location.origin; }
+        } else {
+            const email = document.getElementById('email').value;
+            const pass = document.getElementById('pass').value;
+            const { error } = await sb.auth.signInWithPassword({ email, password: pass });
+            if (error) alert(error.message);
+            else alert("Logged In!");
+        }
     }
 
-    async function saveNewPass() {
-        const p1 = document.getElementById('p1').value;
-        const p2 = document.getElementById('p2').value;
-        if (p1 !== p2) return alert("Passwords don't match");
-        const { error } = await sb.auth.updateUser({ password: p1 });
+    async function handleResetRequest() {
+        const email = document.getElementById('email').value;
+        if (!email) return alert("Type your email first!");
+        // Redirect to exact URL without stars
+        const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: "https://eudes-chat.vercel.app" });
         if (error) alert(error.message);
-        else { alert("Success! Log in now."); window.location.href = window.location.origin; }
+        else alert("Check your email for the link!");
     }
 
-    async function login() {
-        const email = document.getElementById('e').value;
-        const pass = document.getElementById('p').value;
-        const { error } = await sb.auth.signInWithPassword({ email, password: pass });
-        if (error) alert(error.message);
-        else location.reload();
-    }
-
-    async function reset() {
-        const email = document.getElementById('e').value;
-        if (!email) return alert("Enter email first");
-        const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: window.location.href });
-        if (error) alert(error.message);
-        else alert("Link sent! Check your email.");
-    }
-
-    checkLink();
+    init();
 </script>
 </body>
 </html>
