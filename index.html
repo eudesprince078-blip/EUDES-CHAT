@@ -20,6 +20,7 @@
         .btn-outline { background: var(--white); color: var(--eudes-blue); border: 1px solid var(--eudes-blue); padding: 12px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; }
         .auth-card { background: var(--white); padding: 30px; margin: auto; border-radius: 15px; width: 85%; max-width: 380px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
         .footer { font-size: 11px; text-align: center; color: #666; padding: 10px; background: var(--white); border-top: 1px solid #eee; }
+        .forgot-link { display: block; margin-top: 15px; color: var(--eudes-blue); font-size: 13px; text-decoration: none; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -32,6 +33,8 @@
         
         <button class="btn-blue" onclick="handleLogin()">LOG IN</button>
         <button class="btn-outline" onclick="handleRegister()">REGISTER ACCOUNT</button>
+        
+        <span class="forgot-link" onclick="handleForgotPassword()">Forgot Password?</span>
         
         <p style="font-size: 11px; color: #888; margin-top: 15px;">Eudes Media Support: +256762992440</p>
     </div>
@@ -60,28 +63,21 @@
 
     sb.auth.onAuthStateChange(async (event, session) => {
         if (session) {
-            // Check for profile in your 'profile' table
             let { data: profile } = await sb.from('profile').select('*').eq('id', session.user.id).single();
-            
             if (!profile) {
                 const phone = prompt("Registering Identity. Enter Phone Number (+256...):");
                 const name = prompt("Enter Display Name:");
-                const { data: newP, error: insErr } = await sb.from('profile').insert([
-                    { id: session.user.id, email: session.user.email, phone: phone, username: name }
-                ]).select().single();
-                
-                if(insErr) return alert("Database Error: " + insErr.message);
-                myProfile = newP;
+                await sb.from('profile').insert([{ id: session.user.id, email: session.user.email, phone: phone, username: name }]);
+                location.reload(); 
             } else { 
                 myProfile = profile; 
+                document.getElementById('auth-ui').style.display = 'none';
+                document.getElementById('chat-ui').style.display = 'flex';
+                loadHistory();
             }
-            document.getElementById('auth-ui').style.display = 'none';
-            document.getElementById('chat-ui').style.display = 'flex';
-            loadHistory();
         }
     });
 
-    // ACTION 1: LOGIN FOR EXISTING USERS
     async function handleLogin() {
         const e = document.getElementById('email').value;
         const p = document.getElementById('pass').value;
@@ -89,23 +85,29 @@
         if (error) alert("Login Failed: " + error.message);
     }
 
-    // ACTION 2: REGISTER FOR NEW USERS
     async function handleRegister() {
         const e = document.getElementById('email').value;
         const p = document.getElementById('pass').value;
         const { error } = await sb.auth.signUp({ email: e, password: p });
         if (error) alert("Registration Failed: " + error.message);
-        else alert("Registration successful! Verify email or log in.");
+        else alert("Check your email to verify your account!");
+    }
+
+    // NEW RESET PASSWORD FUNCTION
+    async function handleForgotPassword() {
+        const email = document.getElementById('email').value;
+        if (!email) return alert("Please type your email address first.");
+        
+        const { error } = await sb.auth.resetPasswordForEmail(email);
+        if (error) alert("Reset Error: " + error.message);
+        else alert("Password reset link sent to your email!");
     }
 
     async function findContact() {
         const p = prompt("Enter friend's number:");
         const { data } = await sb.from('profile').select('*').eq('phone', p).single();
-        if(data) { 
-            activePartner = data; 
-            alert("Connected to " + data.username); 
-            loadHistory();
-        } else { alert("Number not found."); }
+        if(data) { activePartner = data; alert("Connected to " + data.username); loadHistory(); }
+        else { alert("Number not found."); }
     }
 
     async function sendMsg() {
