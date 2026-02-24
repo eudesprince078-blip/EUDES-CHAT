@@ -13,7 +13,7 @@
         input { width: 100%; margin-bottom: 12px; padding: 12px; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; outline: none; }
         .btn-blue { background: var(--eudes-blue); color: var(--white); border: none; padding: 14px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; }
         .toggle-link { color: var(--eudes-blue); cursor: pointer; font-size: 13px; display: block; margin-top: 15px; text-decoration: underline; }
-        .header { background: var(--eudes-blue); color: var(--white); padding: 15px; width: 100%; box-sizing: border-box; display: flex; justify-content: space-between; align-items: center; }
+        .header { background: var(--eudes-blue); color: var(--white); padding: 15px; width: 100%; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; }
         .footer { font-size: 11px; text-align: center; color: #666; padding: 10px; width: 100%; background: var(--white); border-top: 1px solid #eee; position: fixed; bottom: 0; }
     </style>
 </head>
@@ -59,7 +59,7 @@
     let isLoginMode = true;
     let isResetMode = false;
 
-    // DETECT PASSWORD RESET LINK
+    // DETECT RESET LINK
     sb.auth.onAuthStateChange(async (event, session) => {
         if (event === "PASSWORD_RECOVERY") {
             isResetMode = true;
@@ -71,16 +71,13 @@
             document.getElementById('auth-extras').style.display = "none";
             document.getElementById('auth-ui').style.display = "flex";
         } else if (session) {
-            // Check if profile exists
-            let { data: profile } = await sb.from('profile').select('*').eq('id', session.user.id).single();
-            if (profile) {
-                document.getElementById('auth-ui').style.display = 'none';
-                document.getElementById('chat-ui').style.display = 'flex';
-            }
+            document.getElementById('auth-ui').style.display = 'none';
+            document.getElementById('chat-ui').style.display = 'flex';
         }
     });
 
     function toggleAuthMode() {
+        if(isResetMode) return location.reload();
         isLoginMode = !isLoginMode;
         document.getElementById('auth-title').innerText = isLoginMode ? "LOG IN" : "REGISTER";
         document.getElementById('mainBtn').innerText = isLoginMode ? "LOG IN" : "CREATE ACCOUNT";
@@ -97,30 +94,30 @@
             if (pass !== passConfirm) return alert("Passwords do not match!");
             const { error } = await sb.auth.updateUser({ password: pass });
             if (error) alert(error.message);
-            else { alert("Password Updated Successfully!"); window.location.href = "/"; }
+            else { alert("Success! Password updated."); window.location.href = window.location.origin; }
         } else if (isLoginMode) {
             const { error } = await sb.auth.signInWithPassword({ email, password: pass });
-            if (error) alert("Login Failed: Check your email or password.");
+            if (error) alert(error.message);
         } else {
             const name = document.getElementById('regName').value;
             const phone = document.getElementById('regPhone').value;
-            if (!name || phone.length !== 10) return alert("Please enter Name and a 10-digit Phone Number.");
-            
+            if (!name || phone.length !== 10) return alert("Enter Name and 10-digit Phone!");
             const { error } = await sb.auth.signUp({ 
-                email, pass, 
+                email, password: pass, 
                 options: { data: { full_name: name, phone_number: phone } } 
             });
             if (error) alert(error.message);
-            else alert("Registration successful! Check your email to verify.");
+            else alert("Check email to verify your account!");
         }
     }
 
     async function handleForgotPassword() {
         const email = document.getElementById('email').value;
-        if (!email) return alert("Please enter your email address first.");
-        const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin });
+        if (!email) return alert("Type your email first!");
+        // We use window.location.href to ensure the link sends you back to the EXACT page
+        const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: window.location.href });
         if (error) alert(error.message);
-        else alert("Password reset link sent to your email!");
+        else alert("Link sent! Check your email (including Spam folder).");
     }
 
     async function handleLogout() { 
