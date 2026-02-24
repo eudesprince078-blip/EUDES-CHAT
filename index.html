@@ -13,30 +13,30 @@
         .chat-box { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 8px; }
         .msg { padding: 10px 14px; border-radius: 12px; max-width: 75%; font-size: 15px; }
         .msg-me { align-self: flex-end; background: var(--eudes-blue); color: var(--white); }
-        .msg-them { align-self: flex-start; background: var(--white); border: 1px solid #dee2e6; }
+        .msg-them { align-self: flex-start; background: var(--white); border: 1px solid #dee2e6; color: #333; }
         .input-area { background: var(--white); padding: 12px; display: flex; align-items: center; gap: 10px; border-top: 1px solid #ddd; }
-        input { flex: 1; border: 1px solid #ced4da; padding: 12px; border-radius: 25px; outline: none; }
-        .btn-blue { background: var(--eudes-blue); color: var(--white); border: none; padding: 12px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; margin-bottom: 10px; }
-        .btn-outline { background: var(--white); color: var(--eudes-blue); border: 1px solid var(--eudes-blue); padding: 12px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; }
+        input { width: 90%; margin-bottom: 10px; padding: 12px; border-radius: 8px; border: 1px solid #ccc; outline: none; box-sizing: border-box; }
+        .btn-blue { background: var(--eudes-blue); color: var(--white); border: none; padding: 12px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; }
         .auth-card { background: var(--white); padding: 30px; margin: auto; border-radius: 15px; width: 85%; max-width: 380px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
         .footer { font-size: 11px; text-align: center; color: #666; padding: 10px; background: var(--white); border-top: 1px solid #eee; }
-        .forgot-link { display: block; margin-top: 15px; color: var(--eudes-blue); font-size: 13px; text-decoration: none; cursor: pointer; }
+        .toggle-link { color: var(--eudes-blue); cursor: pointer; font-size: 13px; display: block; margin-top: 15px; text-decoration: underline; }
     </style>
 </head>
 <body>
 
 <div id="auth-ui" style="display: flex;">
     <div class="auth-card">
-        <h2 style="color: var(--eudes-blue); margin-top: 0;">EUDES MEDIA</h2>
-        <input type="email" id="email" placeholder="Email Address" style="width: 90%; margin-bottom: 10px; padding: 10px; border-radius: 5px; border: 1px solid #ccc;"><br>
-        <input type="password" id="pass" placeholder="Password" style="width: 90%; margin-bottom: 20px; padding: 10px; border-radius: 5px; border: 1px solid #ccc;"><br>
+        <h2 id="auth-title" style="color: var(--eudes-blue); margin-top: 0;">LOG IN</h2>
+        <input type="email" id="email" placeholder="Email Address">
+        <input type="password" id="pass" placeholder="Password">
+        <input type="password" id="passConfirm" placeholder="Confirm Password" style="display:none;">
         
-        <button class="btn-blue" onclick="handleLogin()">LOG IN</button>
-        <button class="btn-outline" onclick="handleRegister()">REGISTER ACCOUNT</button>
+        <button id="mainBtn" class="btn-blue" onclick="handleAuth()">LOG IN</button>
         
-        <span class="forgot-link" onclick="handleForgotPassword()">Forgot Password?</span>
+        <span id="toggleText" class="toggle-link" onclick="toggleAuthMode()">New here? Register Account</span>
+        <span class="toggle-link" onclick="handleForgotPassword()" style="text-decoration: none; margin-top: 5px;">Forgot Password?</span>
         
-        <p style="font-size: 11px; color: #888; margin-top: 15px;">Eudes Media Support: +256762992440</p>
+        <p style="font-size: 11px; color: #888; margin-top: 20px;">Eudes Media Support: +256762992440</p>
     </div>
 </div>
 
@@ -47,7 +47,7 @@
     </div>
     <div id="chatbox" class="chat-box"></div>
     <div class="input-area">
-        <input type="text" id="msgInput" placeholder="Type a message...">
+        <input type="text" id="msgInput" placeholder="Type a message..." style="width: auto; flex: 1; margin: 0;">
         <button onclick="sendMsg()" style="background:none; border:none; font-size:24px; cursor:pointer;">📤</button>
     </div>
     <div class="footer">Eudes Media | +256762992440</div>
@@ -58,15 +58,41 @@
     const S_KEY = "sb_publishable_1PetUo8klWCLfupRq52CVg_Y_YYrzcO";
     const sb = supabase.createClient(S_URL, S_KEY);
 
+    let isLoginMode = true;
     let myProfile = null;
     let activePartner = null;
+
+    function toggleAuthMode() {
+        isLoginMode = !isLoginMode;
+        document.getElementById('auth-title').innerText = isLoginMode ? "LOG IN" : "REGISTER";
+        document.getElementById('mainBtn').innerText = isLoginMode ? "LOG IN" : "CREATE ACCOUNT";
+        document.getElementById('passConfirm').style.display = isLoginMode ? "none" : "block";
+        document.getElementById('toggleText').innerText = isLoginMode ? "New here? Register Account" : "Already have an account? Log In";
+    }
+
+    async function handleAuth() {
+        const e = document.getElementById('email').value;
+        const p = document.getElementById('pass').value;
+        const pc = document.getElementById('passConfirm').value;
+
+        if (isLoginMode) {
+            const { error } = await sb.auth.signInWithPassword({ email: e, password: p });
+            if (error) alert("Login Failed: " + error.message);
+        } else {
+            if (p !== pc) return alert("Passwords do not match!");
+            const { error } = await sb.auth.signUp({ email: e, password: p });
+            if (error) alert("Registration Failed: " + error.message);
+            else alert("Account created! Check your email to verify.");
+        }
+    }
 
     sb.auth.onAuthStateChange(async (event, session) => {
         if (session) {
             let { data: profile } = await sb.from('profile').select('*').eq('id', session.user.id).single();
             if (!profile) {
-                const phone = prompt("Registering Identity. Enter Phone Number (+256...):");
+                const phone = prompt("Almost done! Enter Phone Number (+256...):");
                 const name = prompt("Enter Display Name:");
+                if(!phone || !name) return;
                 await sb.from('profile').insert([{ id: session.user.id, email: session.user.email, phone: phone, username: name }]);
                 location.reload(); 
             } else { 
@@ -78,36 +104,24 @@
         }
     });
 
-    async function handleLogin() {
-        const e = document.getElementById('email').value;
-        const p = document.getElementById('pass').value;
-        const { error } = await sb.auth.signInWithPassword({ email: e, password: p });
-        if (error) alert("Login Failed: " + error.message);
-    }
-
-    async function handleRegister() {
-        const e = document.getElementById('email').value;
-        const p = document.getElementById('pass').value;
-        const { error } = await sb.auth.signUp({ email: e, password: p });
-        if (error) alert("Registration Failed: " + error.message);
-        else alert("Check your email to verify your account!");
-    }
-
-    // NEW RESET PASSWORD FUNCTION
     async function handleForgotPassword() {
         const email = document.getElementById('email').value;
-        if (!email) return alert("Please type your email address first.");
-        
+        if (!email) return alert("Type your email first.");
         const { error } = await sb.auth.resetPasswordForEmail(email);
-        if (error) alert("Reset Error: " + error.message);
-        else alert("Password reset link sent to your email!");
+        if (error) alert(error.message);
+        else alert("Reset link sent to your email!");
     }
 
     async function findContact() {
         const p = prompt("Enter friend's number:");
         const { data } = await sb.from('profile').select('*').eq('phone', p).single();
-        if(data) { activePartner = data; alert("Connected to " + data.username); loadHistory(); }
-        else { alert("Number not found."); }
+        if(data) { 
+            activePartner = data; 
+            alert("Now chatting with " + data.username); 
+            loadHistory(); 
+        } else {
+            alert("Number not found in Eudes database.");
+        }
     }
 
     async function sendMsg() {
@@ -119,7 +133,11 @@
     }
 
     async function loadHistory() {
-        const { data } = await sb.from('Message').select('*').or(`receiver_id.eq.${myProfile.phone},sender_id.eq.${myProfile.id}`);
+        if (!activePartner) return;
+        const { data } = await sb.from('Message')
+            .select('*')
+            .or(`receiver_id.eq.${myProfile.phone},sender_id.eq.${myProfile.id}`);
+        
         const box = document.getElementById('chatbox');
         box.innerHTML = "";
         if(data) data.forEach(m => {
