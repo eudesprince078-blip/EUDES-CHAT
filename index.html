@@ -3,140 +3,122 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Eudes Media</title>
+    <title>Eudes Media - Africa Connect</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f0f2f5; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
-        .card { background: white; padding: 35px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 90%; max-width: 400px; text-align: center; }
-        h1 { color: #004d40; margin: 0 0 10px 0; font-size: 26px; }
-        p { color: #666; font-size: 14px; margin-bottom: 20px; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
-        button { width: 100%; padding: 14px; background-color: #004d40; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        button:hover { background-color: #002d20; }
+        :root { --primary: #004d40; --bg: #f0f2f5; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); display: flex; justify-content: center; height: 100vh; }
+        .app-container { width: 100%; max-width: 450px; background: white; display: flex; flex-direction: column; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
+        .header { background: var(--primary); color: white; padding: 15px; text-align: center; font-size: 20px; font-weight: bold; }
+        
+        /* Profile Section */
+        .profile-card { padding: 15px; text-align: center; border-bottom: 1px solid #eee; background: #fff; }
+        .profile-pic { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; background: #ddd; border: 2px solid var(--primary); }
+        .bio { font-size: 13px; color: #666; margin: 5px 0; }
+        
+        /* Chat View */
+        .chat-area { flex: 1; overflow-y: auto; padding: 15px; background: #e5ddd5; }
+        .msg { background: white; padding: 10px; border-radius: 10px; margin-bottom: 10px; max-width: 85%; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+        .msg-header { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+        .msg-avatar { width: 30px; height: 30px; border-radius: 50%; }
+
+        /* Input Area */
+        .input-box { padding: 10px; display: flex; gap: 8px; background: #f0f0f0; align-items: center; }
+        input[type="text"] { flex: 1; padding: 12px; border-radius: 25px; border: 1px solid #ddd; outline: none; }
+        .call-btn { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--primary); }
         .hidden { display: none; }
-        #chat-box { height: 300px; overflow-y: auto; border: 1px solid #eee; padding: 10px; margin: 20px 0; text-align: left; background: #fafafa; border-radius: 8px; font-size: 14px; }
-        .footer { margin-top: 25px; font-size: 12px; color: #999; border-top: 1px solid #eee; padding-top: 15px; }
-        .msg { margin-bottom: 8px; border-bottom: 1px solid #f0f0f0; padding-bottom: 4px; }
+        .footer { font-size: 11px; text-align: center; padding: 10px; color: #999; border-top: 1px solid #eee; }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <h1>Eudes Media</h1>
-    <p id="status-msg">Professional Community Messenger</p>
+<div class="app-container">
+    <div class="header">Eudes Media</div>
     
-    <div id="login-area">
-        <input type="email" id="email-field" placeholder="your-email@gmail.com">
-        <button onclick="requestCode()">Get Verification Code</button>
-    </div>
-
-    <div id="otp-area" class="hidden">
-        <input type="text" id="otp-field" placeholder="Enter 6-digit code">
-        <button onclick="verifyCode()">Verify & Join</button>
-    </div>
-
-    <div id="chat-area" class="hidden">
-        <div id="chat-box"></div>
-        <div style="display: flex; gap: 5px;">
-            <input type="text" id="message-input" placeholder="Type a message..." style="margin: 0;">
-            <button onclick="sendMessage()" style="width: 80px; padding: 10px;">Send</button>
+    <div class="profile-card">
+        <img id="my-pic" class="profile-pic" src="https://cdn-icons-png.flaticon.com/512/149/149071.png">
+        <div id="my-name" style="font-weight:bold; margin-top:5px;">eudesprince078</div>
+        <div id="my-bio" class="bio">Member of Eudes Media Africa</div>
+        <div style="display:flex; justify-content:center; gap:10px; margin-top:5px;">
+            <button onclick="changePic()" style="font-size:11px;">Change Photo</button>
+            <button onclick="changeBio()" style="font-size:11px;">Edit Bio</button>
         </div>
     </div>
 
-    <div class="footer">
-        <strong>Eudes Media</strong><br>
-        Contact: +256762992440
+    <div class="chat-area" id="chat-window"></div>
+
+    <div class="input-box">
+        <button class="call-btn" onclick="alert('Starting Video Call...')">🎥</button>
+        <input type="text" id="msg-input" placeholder="Message to Africa...">
+        <button onclick="sendMsg()" style="background:var(--primary); color:white; border:none; padding:10px 15px; border-radius:20px; cursor:pointer;">Send</button>
     </div>
+
+    <div class="footer">Eudes Media | +256762992440</div>
 </div>
 
 <script>
-    // These keys are verified from your dashboard screenshots
-    const SB_URL = "https://kjftrwuucjdnhfwesrup.supabase.co";
-    const SB_KEY = "sb_publishable_1PetUo8klWCLfupRq52CVg_Y_YYrzcO";
-    const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
+    const URL = "https://kjftrwuucjdnhfwesrup.supabase.co";
+    const KEY = "sb_publishable_1PetUo8klWCLfupRq52CVg_Y_YYrzcO";
+    const sb = supabase.createClient(URL, KEY);
 
-    let currentUserEmail = "";
+    let myEmail = "eudesprince078@gmail.com";
+    let myAvatar = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+    let myDescription = "Member of Eudes Media Africa";
 
-    // 1. Function to send the email code
-    async function requestCode() {
-        currentUserEmail = document.getElementById('email-field').value;
-        if(!currentUserEmail) return alert("Please enter your email");
+    // Initialize: Load history and start Realtime
+    window.onload = async () => {
+        const { data } = await sb.from('Message').select('*').order('created_at', {ascending: true});
+        if(data) data.forEach(m => displayMsg(m.username, m.content, m.avatar));
 
-        const { error } = await supabaseClient.auth.signInWithOtp({ email: currentUserEmail });
-        
-        if (error) {
-            alert("Error: " + error.message);
-        } else {
-            // Success: Switch to OTP screen
-            document.getElementById('login-area').classList.add('hidden');
-            document.getElementById('otp-area').classList.remove('hidden');
-            document.getElementById('status-msg').innerText = "Check your Gmail for the 6-digit code";
+        sb.channel('any').on('postgres_changes', {event:'INSERT', schema:'public', table:'Message'}, 
+        p => displayMsg(p.new.username, p.new.content, p.new.avatar)).subscribe();
+    };
+
+    function changePic() {
+        const url = prompt("Paste an image URL for your profile photo:");
+        if(url) {
+            myAvatar = url;
+            document.getElementById('my-pic').src = url;
         }
     }
 
-    // 2. Function to verify the code and enter chat
-    async function verifyCode() {
-        const code = document.getElementById('otp-field').value;
-        const { error } = await supabaseClient.auth.verifyOtp({ 
-            email: currentUserEmail, 
-            token: code, 
-            type: 'email' 
-        });
-
-        if (error) {
-            alert("Invalid code. Please check your email again.");
-        } else {
-            // Success: Switch to Chat screen
-            document.getElementById('otp-area').classList.add('hidden');
-            document.getElementById('chat-area').classList.remove('hidden');
-            document.getElementById('status-msg').innerText = "Community Chat Room";
-            initChat();
+    function changeBio() {
+        const bio = prompt("Enter your Africa community bio:");
+        if(bio) {
+            myDescription = bio;
+            document.getElementById('my-bio').innerText = bio;
         }
     }
 
-    // 3. Initialize Chat (Load history and start listening)
-    async function initChat() {
-        // Fetch existing messages from 'Message' table
-        const { data } = await supabaseClient
-            .from('Message')
-            .select('*')
-            .order('created_at', { ascending: true });
-        
-        if (data) data.forEach(msg => updateUI(msg.username, msg.content));
-
-        // Listen for new messages in Realtime
-        supabaseClient.channel('public:Message')
-            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'Message' }, 
-            payload => updateUI(payload.new.username, payload.new.content))
-            .subscribe();
-    }
-
-    // 4. Send a new message
-    async function sendMessage() {
-        const input = document.getElementById('message-input');
-        const text = input.value;
+    async function sendMsg() {
+        const text = document.getElementById('msg-input').value;
         if(!text) return;
 
-        // Insert into 'Message' table
-        const { error } = await supabaseClient
-            .from('Message')
-            .insert([{ username: currentUserEmail, content: text }]);
-        
-        if (error) alert("Send error: " + error.message);
-        input.value = "";
+        // Saves to 'Message' table with the new columns
+        await sb.from('Message').insert([{ 
+            username: myEmail, 
+            content: text, 
+            avatar: myAvatar,
+            description: myDescription 
+        }]);
+        document.getElementById('msg-input').value = "";
     }
 
-    // 5. Helper to add text to the screen
-    function updateUI(user, text) {
-        const box = document.getElementById('chat-box');
-        const msgDiv = document.createElement('div');
-        msgDiv.className = 'msg';
-        const name = user ? user.split('@')[0] : "Guest";
-        msgDiv.innerHTML = `<strong>${name}:</strong> ${text}`;
-        box.appendChild(msgDiv);
-        box.scrollTop = box.scrollHeight;
+    function displayMsg(user, text, img) {
+        const win = document.getElementById('chat-window');
+        const div = document.createElement('div');
+        div.className = 'msg';
+        const pic = img || 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
+        div.innerHTML = `
+            <div class="msg-header">
+                <img src="${pic}" class="msg-avatar">
+                <strong>${user.split('@')[0]}</strong>
+            </div>
+            <div>${text}</div>
+        `;
+        win.appendChild(div);
+        win.scrollTop = win.scrollHeight;
     }
 </script>
-
 </body>
 </html>
