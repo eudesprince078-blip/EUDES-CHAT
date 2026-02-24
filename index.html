@@ -8,13 +8,13 @@
     <style>
         :root { --eudes-blue: #0056b3; --white: #ffffff; --bg: #f4f7f9; }
         body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); height: 100vh; display: flex; flex-direction: column; }
-        #auth-ui, #chat-ui { height: 100%; display: none; flex-direction: column; }
-        .auth-card { background: var(--white); padding: 30px; margin: auto; border-radius: 15px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        #auth-ui, #chat-ui { height: 100%; display: none; flex-direction: column; justify-content: center; align-items: center; }
+        .auth-card { background: var(--white); padding: 30px; border-radius: 15px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
         input { width: 100%; margin-bottom: 12px; padding: 12px; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; outline: none; }
         .btn-blue { background: var(--eudes-blue); color: var(--white); border: none; padding: 14px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; }
         .toggle-link { color: var(--eudes-blue); cursor: pointer; font-size: 13px; display: block; margin-top: 15px; text-decoration: underline; }
-        .header { background: var(--eudes-blue); color: var(--white); padding: 15px; display: flex; justify-content: space-between; align-items: center; }
-        .footer { font-size: 11px; text-align: center; color: #666; padding: 10px; background: var(--white); border-top: 1px solid #eee; }
+        .header { background: var(--eudes-blue); color: var(--white); padding: 15px; width: 100%; box-sizing: border-box; display: flex; justify-content: space-between; align-items: center; }
+        .footer { font-size: 11px; text-align: center; color: #666; padding: 10px; width: 100%; background: var(--white); border-top: 1px solid #eee; position: fixed; bottom: 0; }
     </style>
 </head>
 <body>
@@ -47,11 +47,7 @@
         <strong>Eudes Chat</strong>
         <span onclick="handleLogout()" style="cursor: pointer; font-size: 14px; border: 1px solid white; padding: 2px 5px; border-radius: 3px;">Logout</span>
     </div>
-    <div id="chatbox" style="flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;"></div>
-    <div style="background: var(--white); padding: 12px; display: flex; align-items: center; gap: 10px; border-top: 1px solid #ddd;">
-        <input type="text" id="msgInput" placeholder="Type a message..." style="margin: 0; flex: 1;">
-        <button onclick="sendMsg()" style="background: none; border: none; font-size: 24px; cursor: pointer;">📤</button>
-    </div>
+    <div id="chatbox" style="flex: 1; width: 100%; padding: 15px; overflow-y: auto;"></div>
     <div class="footer">Eudes Media | +256762992440</div>
 </div>
 
@@ -62,19 +58,8 @@
 
     let isLoginMode = true;
     let isResetMode = false;
-    let myProfile = null;
 
-    function toggleAuthMode() {
-        if(isResetMode) return location.reload();
-        isLoginMode = !isLoginMode;
-        document.getElementById('auth-title').innerText = isLoginMode ? "LOG IN" : "REGISTER";
-        document.getElementById('mainBtn').innerText = isLoginMode ? "LOG IN" : "CREATE ACCOUNT";
-        document.getElementById('reg-fields').style.display = isLoginMode ? "none" : "block";
-        document.getElementById('passConfirm').style.display = isLoginMode ? "none" : "block";
-        document.getElementById('toggleText').innerText = isLoginMode ? "New here? Register Account" : "Already have an account? Log In";
-    }
-
-    // AUTOMATIC RECOVERY DETECTION
+    // DETECT PASSWORD RESET LINK
     sb.auth.onAuthStateChange(async (event, session) => {
         if (event === "PASSWORD_RECOVERY") {
             isResetMode = true;
@@ -86,14 +71,22 @@
             document.getElementById('auth-extras').style.display = "none";
             document.getElementById('auth-ui').style.display = "flex";
         } else if (session) {
+            // Check if profile exists
             let { data: profile } = await sb.from('profile').select('*').eq('id', session.user.id).single();
             if (profile) {
-                myProfile = profile;
                 document.getElementById('auth-ui').style.display = 'none';
                 document.getElementById('chat-ui').style.display = 'flex';
             }
         }
     });
+
+    function toggleAuthMode() {
+        isLoginMode = !isLoginMode;
+        document.getElementById('auth-title').innerText = isLoginMode ? "LOG IN" : "REGISTER";
+        document.getElementById('mainBtn').innerText = isLoginMode ? "LOG IN" : "CREATE ACCOUNT";
+        document.getElementById('reg-fields').style.display = isLoginMode ? "none" : "block";
+        document.getElementById('passConfirm').style.display = isLoginMode ? "none" : "block";
+    }
 
     async function handleAuth() {
         const email = document.getElementById('email').value;
@@ -104,33 +97,30 @@
             if (pass !== passConfirm) return alert("Passwords do not match!");
             const { error } = await sb.auth.updateUser({ password: pass });
             if (error) alert(error.message);
-            else { alert("Success! Password updated."); location.reload(); }
+            else { alert("Password Updated Successfully!"); window.location.href = "/"; }
         } else if (isLoginMode) {
             const { error } = await sb.auth.signInWithPassword({ email, password: pass });
-            if (error) alert(error.message);
+            if (error) alert("Login Failed: Check your email or password.");
         } else {
             const name = document.getElementById('regName').value;
             const phone = document.getElementById('regPhone').value;
-            if (!name || phone.length !== 10) return alert("Enter your Name and a valid 10-digit Phone!");
-            if (pass !== passConfirm) return alert("Passwords do not match!");
-
+            if (!name || phone.length !== 10) return alert("Please enter Name and a 10-digit Phone Number.");
+            
             const { error } = await sb.auth.signUp({ 
-                email, 
-                password: pass, 
+                email, pass, 
                 options: { data: { full_name: name, phone_number: phone } } 
             });
-            
             if (error) alert(error.message);
-            else alert("Verify your email to activate your account!");
+            else alert("Registration successful! Check your email to verify.");
         }
     }
 
     async function handleForgotPassword() {
         const email = document.getElementById('email').value;
-        if (!email) return alert("Please type your email address first.");
-        const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: window.location.href });
+        if (!email) return alert("Please enter your email address first.");
+        const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin });
         if (error) alert(error.message);
-        else alert("A reset link has been sent to your email!");
+        else alert("Password reset link sent to your email!");
     }
 
     async function handleLogout() { 
