@@ -2,47 +2,24 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Eudes Chat Pro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eudes Media Recovery</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --eudes-blue: #0056b3; --white: #ffffff; --bg: #f4f7f9; }
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); height: 100vh; display: flex; align-items: center; justify-content: center; }
-        .auth-card { background: var(--white); padding: 30px; border-radius: 15px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        input { width: 100%; margin-bottom: 12px; padding: 14px; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; outline: none; font-size: 16px; }
-        .btn-blue { background: var(--eudes-blue); color: var(--white); border: none; padding: 14px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; }
-        .toggle-link { color: var(--eudes-blue); cursor: pointer; font-size: 13px; display: block; margin-top: 15px; text-decoration: underline; }
-        #chat-ui { display: none; width: 100%; height: 100%; background: white; flex-direction: column; }
+        body { font-family: sans-serif; background: #f4f7f9; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); text-align: center; width: 350px; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
+        button { background: #0056b3; color: white; border: none; padding: 12px; width: 100%; border-radius: 6px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
-<div id="auth-ui" class="auth-card">
-    <h2 id="auth-title" style="color: var(--eudes-blue); margin-top: 0;">LOG IN</h2>
-    
-    <div id="reg-fields" style="display: none;">
-        <input type="text" id="regName" placeholder="Full Name">
-        <input type="text" id="regPhone" placeholder="Phone Number (10 digits)">
+<div class="card" id="box">
+    <h2 id="title" style="color: #0056b3;">Eudes Media</h2>
+    <div id="ui">
+        <p>Checking link...</p>
     </div>
-
-    <input type="email" id="email" placeholder="Email Address">
-    <input type="password" id="pass" placeholder="Password">
-    <input type="password" id="passConfirm" placeholder="Confirm New Password" style="display:none;">
-    
-    <button id="mainBtn" class="btn-blue" onclick="handleAuth()">LOG IN</button>
-    
-    <div id="auth-options">
-        <span id="toggleText" class="toggle-link" onclick="toggleAuthMode()">New here? Register Account</span>
-        <span class="toggle-link" onclick="handleForgotPassword()" style="text-decoration: none; margin-top: 5px;">Forgot Password?</span>
-    </div>
-    
-    <p style="font-size: 11px; color: #888; margin-top: 20px;">Eudes Media Support: +256762992440</p>
-</div>
-
-<div id="chat-ui">
-    <div style="background: var(--eudes-blue); color: white; padding: 15px; text-align: center; font-weight: bold;">Eudes Chat Pro</div>
-    <div id="chatbox" style="flex: 1; padding: 15px; overflow-y: auto;"></div>
-    <div style="padding: 10px; border-top: 1px solid #eee; text-align: center; font-size: 12px;">Eudes Media | +256762992440</div>
+    <p style="font-size: 12px; color: #888; margin-top: 20px;">Support: +256762992440</p>
 </div>
 
 <script>
@@ -50,77 +27,61 @@
     const S_KEY = "sb_publishable_1PetUo8klWCLfupRq52CVg_Y_YYrzcO";
     const sb = supabase.createClient(S_URL, S_KEY);
 
-    let isLoginMode = true;
-    let isRecovery = false;
-
-    // FORCE CHECK: Check the URL bar for the word 'recovery' immediately
-    if (window.location.href.includes("type=recovery")) {
-        isRecovery = true;
-        setTimeout(showRecoveryUI, 100); 
-    }
-
-    sb.auth.onAuthStateChange(async (event, session) => {
-        if (event === "PASSWORD_RECOVERY") {
-            isRecovery = true;
-            showRecoveryUI();
-        } else if (session && !isRecovery) {
-            document.getElementById('auth-ui').style.display = 'none';
-            document.getElementById('chat-ui').style.display = 'flex';
-        }
-    });
-
-    function showRecoveryUI() {
-        document.getElementById('auth-title').innerText = "SET NEW PASSWORD";
-        document.getElementById('mainBtn').innerText = "SAVE NEW PASSWORD";
-        document.getElementById('email').style.display = "none";
-        document.getElementById('passConfirm').style.display = "block";
-        document.getElementById('auth-options').style.display = "none";
-        document.getElementById('reg-fields').style.display = "none";
-    }
-
-    function toggleAuthMode() {
-        if(isRecovery) return;
-        isLoginMode = !isLoginMode;
-        document.getElementById('auth-title').innerText = isLoginMode ? "LOG IN" : "REGISTER";
-        document.getElementById('mainBtn').innerText = isLoginMode ? "LOG IN" : "CREATE ACCOUNT";
-        document.getElementById('reg-fields').style.display = isLoginMode ? "none" : "block";
-        document.getElementById('passConfirm').style.display = isLoginMode ? "none" : "block";
-    }
-
-    async function handleAuth() {
-        const pass = document.getElementById('pass').value;
-        const passConfirm = document.getElementById('passConfirm').value;
-
-        if (isRecovery) {
-            if (pass !== passConfirm) return alert("Passwords do not match!");
-            const { error } = await sb.auth.updateUser({ password: pass });
-            if (error) alert(error.message);
-            else { alert("Success! Password updated."); window.location.href = window.location.origin; }
-        } else if (isLoginMode) {
-            const email = document.getElementById('email').value;
-            const { error } = await sb.auth.signInWithPassword({ email, password: pass });
-            if (error) alert(error.message);
+    // EMERGENCY CHECK: Look at the URL bar immediately
+    function checkLink() {
+        const url = window.location.href;
+        if (url.includes("type=recovery") || url.includes("access_token=")) {
+            renderResetForm();
         } else {
-            const email = document.getElementById('email').value;
-            const name = document.getElementById('regName').value;
-            const phone = document.getElementById('regPhone').value;
-            if (phone.length !== 10) return alert("Phone must be 10 digits!");
-            const { error } = await sb.auth.signUp({ 
-                email, password: pass, 
-                options: { data: { full_name: name, phone_number: phone } } 
-            });
-            if (error) alert(error.message);
-            else alert("Verify your email to continue!");
+            renderLoginForm();
         }
     }
 
-    async function handleForgotPassword() {
-        const email = document.getElementById('email').value;
-        if (!email) return alert("Please type your email address.");
+    function renderResetForm() {
+        document.getElementById('title').innerText = "NEW PASSWORD";
+        document.getElementById('ui').innerHTML = `
+            <input type="password" id="p1" placeholder="New Password">
+            <input type="password" id="p2" placeholder="Confirm Password">
+            <button onclick="saveNewPass()">SAVE PASSWORD</button>
+        `;
+    }
+
+    function renderLoginForm() {
+        document.getElementById('title').innerText = "LOG IN";
+        document.getElementById('ui').innerHTML = `
+            <input type="email" id="e" placeholder="Email">
+            <input type="password" id="p" placeholder="Password">
+            <button onclick="login()">LOG IN</button>
+            <p style="font-size:12px; color:#0056b3; cursor:pointer;" onclick="reset()">Forgot Password?</p>
+        `;
+    }
+
+    async function saveNewPass() {
+        const p1 = document.getElementById('p1').value;
+        const p2 = document.getElementById('p2').value;
+        if (p1 !== p2) return alert("Passwords don't match");
+        const { error } = await sb.auth.updateUser({ password: p1 });
+        if (error) alert(error.message);
+        else { alert("Success! Log in now."); window.location.href = window.location.origin; }
+    }
+
+    async function login() {
+        const email = document.getElementById('e').value;
+        const pass = document.getElementById('p').value;
+        const { error } = await sb.auth.signInWithPassword({ email, password: pass });
+        if (error) alert(error.message);
+        else location.reload();
+    }
+
+    async function reset() {
+        const email = document.getElementById('e').value;
+        if (!email) return alert("Enter email first");
         const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: window.location.href });
         if (error) alert(error.message);
-        else alert("A reset link has been sent to your email!");
+        else alert("Link sent! Check your email.");
     }
+
+    checkLink();
 </script>
 </body>
 </html>
