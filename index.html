@@ -8,17 +8,14 @@
     <style>
         :root { --eudes-blue: #0056b3; --white: #ffffff; --bg: #f4f7f9; }
         body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); height: 100vh; display: flex; align-items: center; justify-content: center; }
-        .auth-card { background: var(--white); padding: 30px; border-radius: 15px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1); display: none; }
+        .auth-card { background: var(--white); padding: 30px; border-radius: 15px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
         input { width: 100%; margin-bottom: 12px; padding: 14px; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; outline: none; font-size: 16px; }
         .btn-blue { background: var(--eudes-blue); color: var(--white); border: none; padding: 14px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; }
         .toggle-link { color: var(--eudes-blue); cursor: pointer; font-size: 13px; display: block; margin-top: 15px; text-decoration: underline; }
         #chat-ui { display: none; width: 100%; height: 100%; background: white; flex-direction: column; }
-        #loading-screen { color: var(--eudes-blue); font-weight: bold; }
     </style>
 </head>
 <body>
-
-<div id="loading-screen">Checking session...</div>
 
 <div id="auth-ui" class="auth-card">
     <h2 id="auth-title" style="color: var(--eudes-blue); margin-top: 0;">LOG IN</h2>
@@ -56,34 +53,23 @@
     let isLoginMode = true;
     let isRecovery = false;
 
-    // THE FINAL FIX: Check the URL immediately before showing ANY UI
-    async function init() {
-        const hash = window.location.hash;
-        
-        // If the URL has recovery info, set recovery mode FIRST
-        if (hash && (hash.includes("type=recovery") || hash.includes("access_token="))) {
-            isRecovery = true;
-            showRecoveryUI();
-        }
-
-        sb.auth.onAuthStateChange(async (event, session) => {
-            document.getElementById('loading-screen').style.display = 'none';
-
-            if (event === "PASSWORD_RECOVERY") {
-                isRecovery = true;
-                showRecoveryUI();
-            } else if (session && !isRecovery) {
-                document.getElementById('auth-ui').style.display = 'none';
-                document.getElementById('chat-ui').style.display = 'flex';
-            } else if (!isRecovery) {
-                document.getElementById('auth-ui').style.display = 'block';
-            }
-        });
+    // FORCE CHECK: Check the URL bar for the word 'recovery' immediately
+    if (window.location.href.includes("type=recovery")) {
+        isRecovery = true;
+        setTimeout(showRecoveryUI, 100); 
     }
 
+    sb.auth.onAuthStateChange(async (event, session) => {
+        if (event === "PASSWORD_RECOVERY") {
+            isRecovery = true;
+            showRecoveryUI();
+        } else if (session && !isRecovery) {
+            document.getElementById('auth-ui').style.display = 'none';
+            document.getElementById('chat-ui').style.display = 'flex';
+        }
+    });
+
     function showRecoveryUI() {
-        document.getElementById('loading-screen').style.display = 'none';
-        document.getElementById('auth-ui').style.display = 'block';
         document.getElementById('auth-title').innerText = "SET NEW PASSWORD";
         document.getElementById('mainBtn').innerText = "SAVE NEW PASSWORD";
         document.getElementById('email').style.display = "none";
@@ -102,7 +88,6 @@
     }
 
     async function handleAuth() {
-        const email = document.getElementById('email').value;
         const pass = document.getElementById('pass').value;
         const passConfirm = document.getElementById('passConfirm').value;
 
@@ -112,9 +97,11 @@
             if (error) alert(error.message);
             else { alert("Success! Password updated."); window.location.href = window.location.origin; }
         } else if (isLoginMode) {
+            const email = document.getElementById('email').value;
             const { error } = await sb.auth.signInWithPassword({ email, password: pass });
             if (error) alert(error.message);
         } else {
+            const email = document.getElementById('email').value;
             const name = document.getElementById('regName').value;
             const phone = document.getElementById('regPhone').value;
             if (phone.length !== 10) return alert("Phone must be 10 digits!");
@@ -134,8 +121,6 @@
         if (error) alert(error.message);
         else alert("A reset link has been sent to your email!");
     }
-
-    init(); // Start the app logic
 </script>
 </body>
 </html>
