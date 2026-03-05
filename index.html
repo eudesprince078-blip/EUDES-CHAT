@@ -6,155 +6,91 @@
     <title>Progressive Mother’s School | Eudes Media</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --brand-blue: #0d6efd; --brand-white: #ffffff; --bg-light: #f4f7f9; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background-color: var(--bg-light); color: #333; }
-        
-        /* Header: Blue & White Theme */
-        header { background: var(--brand-blue); color: var(--brand-white); padding: 25px 15px; text-align: center; border-bottom: 4px solid #0056b3; }
-        header h1 { margin: 0; font-size: 1.6rem; text-transform: uppercase; letter-spacing: 1px; }
-        header p { margin: 5px 0 0; font-style: italic; font-size: 0.9rem; opacity: 0.9; }
-
-        .container { padding: 15px; max-width: 500px; margin: auto; }
-        .card { background: var(--brand-white); padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 20px; }
-        
-        h2 { margin-top: 0; color: var(--brand-blue); font-size: 1.1rem; border-left: 4px solid var(--brand-blue); padding-left: 10px; }
-        
-        label { display: block; margin-top: 10px; font-weight: 600; font-size: 0.85rem; color: #555; }
-        input { width: 100%; padding: 12px; margin: 5px 0 15px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 1rem; }
-        
-        button { width: 100%; padding: 15px; border: none; border-radius: 6px; background: var(--brand-blue); color: white; font-weight: bold; font-size: 1rem; cursor: pointer; transition: 0.2s; }
-        button:hover { background: #0056b3; transform: translateY(-1px); }
-        button:disabled { background: #ccc; cursor: not-allowed; }
-
-        /* Student List Interface */
-        .student-item { display: flex; align-items: center; padding: 12px; border-bottom: 1px solid #edf2f7; background: #fff; }
-        .student-img { width: 55px; height: 55px; border-radius: 50%; margin-right: 15px; object-fit: cover; border: 2px solid var(--brand-blue); background: #eee; }
-        .student-info b { display: block; color: #2d3748; }
-        .student-info span { font-size: 0.8rem; color: #718096; }
-
-        .footer { text-align: center; padding: 30px 15px; font-size: 0.85rem; color: #666; line-height: 1.6; }
-        .footer b { color: var(--brand-blue); }
+        :root { --brand-pink: #e91e63; --white: #ffffff; }
+        body { font-family: sans-serif; background: #fff5f8; margin: 0; padding: 0; }
+        header { background: var(--brand-pink); color: white; padding: 25px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .container { max-width: 450px; margin: 20px auto; padding: 15px; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; border: 1px solid #fce4ec; }
+        h2 { color: var(--brand-pink); font-size: 1.2rem; margin-top: 0; }
+        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+        button { width: 100%; padding: 14px; background: var(--brand-pink); color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        .student-item { display: flex; align-items: center; padding: 10px; border-bottom: 1px solid #eee; }
+        .student-img { width: 50px; height: 50px; border-radius: 50%; margin-right: 15px; object-fit: cover; border: 2px solid var(--brand-pink); }
+        .footer { text-align: center; font-size: 0.8rem; color: #888; padding: 20px; }
     </style>
 </head>
 <body>
 
 <header>
-    <h1>Progressive Mother’s School</h1>
+    <h1>PROGRESSIVE MOTHER’S SCHOOL</h1>
     <p>Motto: With God Everything Is Possible</p>
 </header>
 
 <div class="container">
     <div class="card">
         <h2>Register New Student</h2>
-        <label>Student Name</label>
-        <input type="text" id="stuName" placeholder="Enter Full Name">
-        
-        <label>Class</label>
-        <input type="text" id="stuClass" placeholder="e.g. Baby Class, P.1">
-        
-        <label>Passport Photo</label>
+        <input type="text" id="stuName" placeholder="Full Name">
+        <input type="text" id="stuClass" placeholder="Class (e.g. P.7)">
         <input type="file" id="stuPhoto" accept="image/*">
-        
-        <button id="saveBtn" onclick="registerStudent()">Upload to School Cloud</button>
+        <button id="saveBtn" onclick="register()">Upload to School Cloud</button>
     </div>
 
     <div class="card">
         <h2>Recent Admissions</h2>
-        <div id="studentList">Connecting to database...</div>
+        <div id="studentList">Loading...</div>
     </div>
 </div>
 
 <div class="footer">
-    System Developed & Managed by<br>
-    <b>Eudes Media</b><br>
-    Official Support: <b>+256762992440</b>
+    System Managed by <b>Eudes Media</b><br>
+    Support: +256762992440
 </div>
 
 <script>
-    // YOUR LIVE SUPABASE CONNECTION
+    // Your verified connection details
     const SB_URL = "https://kjftrwuucjdnhfwesrup.supabase.co"; 
     const SB_KEY = "sb_publishable_1PetUo8klWCLfupRq52CVg_Y_YYrzcO";
-    
     const supabase = libSupabase.createClient(SB_URL, SB_KEY);
 
-    // FUNCTION TO SAVE DATA
-    async function registerStudent() {
+    async function register() {
         const name = document.getElementById('stuName').value;
-        const className = document.getElementById('stuClass').value;
-        const photoFile = document.getElementById('stuPhoto').files[0];
+        const cls = document.getElementById('stuClass').value;
+        const file = document.getElementById('stuPhoto').files[0];
         const btn = document.getElementById('saveBtn');
 
-        if (!name || !photoFile) return alert("Please provide both Name and Photo.");
-
-        btn.disabled = true;
-        btn.innerText = "Processing... Please wait";
+        if (!name || !file) return alert("Fill Name and Photo");
+        btn.disabled = true; btn.innerText = "Uploading...";
 
         try {
-            // 1. Upload to your PROFILES bucket
-            const fileName = `student_${Date.now()}`;
-            const { data: uploadData, error: uploadError } = await supabase.storage
-                .from('PROFILES')
-                .upload(fileName, photoFile);
+            const fileName = `stu_${Date.now()}`;
+            const { data: upData, error: upErr } = await supabase.storage.from('PROFILES').upload(fileName, file);
+            if (upErr) throw upErr;
 
-            if (uploadError) throw uploadError;
-
-            // 2. Get the public image link
             const { data: urlData } = supabase.storage.from('PROFILES').getPublicUrl(fileName);
 
-            // 3. Save to students table
-            const { error: dbError } = await supabase.from('students').insert([
-                { name: name, class: className, photo_url: urlData.publicUrl }
+            const { error: dbErr } = await supabase.from('students').insert([
+                { name: name, class: cls, photo_url: urlData.publicUrl }
             ]);
+            if (dbErr) throw dbErr;
 
-            if (dbError) throw dbError;
-
-            alert("Student Registered Successfully!");
-            document.getElementById('stuName').value = "";
-            document.getElementById('stuClass').value = "";
-            document.getElementById('stuPhoto').value = "";
-            loadStudents();
-
-        } catch (err) {
-            alert("System Error: " + err.message);
+            alert("Success!"); location.reload();
+        } catch (e) {
+            alert("Error: " + e.message);
         } finally {
-            btn.disabled = false;
-            btn.innerText = "Upload to School Cloud";
+            btn.disabled = false; btn.innerText = "Upload to School Cloud";
         }
     }
 
-    // FUNCTION TO SHOW DATA
-    async function loadStudents() {
-        const listDiv = document.getElementById('studentList');
-        
-        const { data, error } = await supabase
-            .from('students')
-            .select('*')
-            .order('created_at', { ascending: false })
-            .limit(10);
-
-        if (error) {
-            listDiv.innerHTML = "Table 'students' not found. Please create it in Supabase.";
-            return;
-        }
-
-        listDiv.innerHTML = data.length ? "" : "No students registered yet.";
-        
-        data.forEach(student => {
-            listDiv.innerHTML += `
-                <div class="student-item">
-                    <img src="${student.photo_url}" class="student-img" onerror="this.src='https://via.placeholder.com/50'">
-                    <div class="student-info">
-                        <b>${student.name}</b>
-                        <span>Class: ${student.class}</span>
-                    </div>
-                </div>
-            `;
+    async function load() {
+        const { data, error } = await supabase.from('students').select('*').order('created_at', { ascending: false });
+        const list = document.getElementById('studentList');
+        if (error) { list.innerHTML = "Check table columns & policies."; return; }
+        list.innerHTML = data.length ? "" : "No students found.";
+        data.forEach(s => {
+            list.innerHTML += `<div class="student-item"><img src="${s.photo_url}" class="student-img"><div><b>${s.name}</b><br><small>${s.class}</small></div></div>`;
         });
     }
-
-    // Initialize list on load
-    loadStudents();
+    load();
 </script>
-
 </body>
 </html>
