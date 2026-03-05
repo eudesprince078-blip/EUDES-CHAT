@@ -3,184 +3,211 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Progressive Mothers | Auto-ID</title>
+    <title>Progressive Mothers | Luxury Executive</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
-        :root { --blue: #1e3a8a; --gold: #b45309; --white: #ffffff; }
+        :root { --purple: #4c1d95; --accent: #7c3aed; --white: #ffffff; }
+        
         body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding-bottom: 90px;
-            background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 100%);
+            font-family: 'Inter', sans-serif; margin: 0; padding-bottom: 90px; color: #1e293b;
+            background: linear-gradient(-45deg, #ffffff, #f5f3ff, #ede9fe, #ffffff);
+            background-size: 400% 400%; animation: liquidBG 18s ease infinite;
         }
-        header { background: var(--blue); padding: 25px; text-align: center; color: white; border-bottom: 5px solid #3b82f6; }
+        @keyframes liquidBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+
+        header { background: white; padding: 30px; text-align: center; border-radius: 0 0 40px 40px; box-shadow: 0 10px 30px rgba(76, 29, 149, 0.08); border-bottom: 3px solid #ddd6fe; }
         .container { max-width: 480px; margin: 0 auto; padding: 0 15px; }
 
-        /* Professional ID Card Design */
+        /* Admin & UI Cards */
+        .glass-card { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); padding: 25px; border-radius: 30px; border: 2px solid white; margin-top: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.05); }
+        input, select, textarea { width: 100%; padding: 15px; margin-bottom: 12px; border: 1px solid #e2e8f0; border-radius: 15px; font-size: 15px; box-sizing: border-box; }
+        
+        .btn-luxury { background: var(--purple); color: white; border: none; width: 100%; padding: 18px; border-radius: 15px; font-weight: 900; letter-spacing: 1px; cursor: pointer; transition: 0.3s; }
+        .btn-luxury:hover { background: var(--accent); transform: translateY(-2px); }
+
+        /* Student Listing */
+        .s-card { background: white; padding: 15px; border-radius: 25px; margin-bottom: 12px; display: flex; align-items: center; gap: 15px; border: 1px solid #f1f5f9; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
+        .s-img { width: 55px; height: 55px; border-radius: 18px; object-fit: cover; background: #f3e8ff; border: 2px solid #ddd6fe; }
+        .s-info { flex: 1; }
+        .s-info b { font-size: 16px; color: var(--purple); display: block; }
+        .status-badge { font-size: 9px; padding: 2px 8px; border-radius: 10px; font-weight: 900; }
+        .active-bg { background: #dcfce7; color: #166534; }
+        .left-bg { background: #fee2e2; color: #991b1b; }
+
+        /* ID Overlay */
         #idModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 2000; align-items: center; justify-content: center; flex-direction: column; }
-        
-        .id-card-design { 
-            width: 350px; background: white; border-radius: 15px; overflow: hidden; 
-            box-shadow: 0 20px 50px rgba(0,0,0,0.3); border: 2px solid #ddd; position: relative;
-        }
-        .id-header { background: var(--blue); color: white; padding: 15px; text-align: center; position: relative; }
-        .id-header h1 { font-size: 14px; margin: 0; letter-spacing: 1px; }
-        .id-header p { font-size: 8px; margin: 2px 0 0; opacity: 0.9; }
-        
-        .id-body { padding: 20px; text-align: center; background: radial-gradient(circle at center, #fff, #f1f5f9); }
-        .id-photo-frame { width: 110px; height: 110px; border-radius: 50%; border: 4px solid var(--blue); margin: -55px auto 10px; background: white; object-fit: cover; }
-        
-        .id-info-table { text-align: left; width: 100%; margin-top: 10px; font-size: 11px; color: #334155; }
-        .id-info-table td { padding: 4px 0; border-bottom: 1px solid #f1f5f9; }
-        .id-label { font-weight: 800; color: var(--blue); width: 80px; }
-        
-        .security-seal { position: absolute; bottom: 60px; right: 20px; width: 50px; opacity: 0.6; }
+        .id-design { width: 330px; background: white; border-radius: 20px; overflow: hidden; text-align: center; border: 1px solid #ddd; }
+        .id-head { background: var(--purple); color: white; padding: 20px; }
 
-        /* Registry List */
-        .s-item { background: white; padding: 15px; border-radius: 20px; margin-bottom: 12px; display: flex; align-items: center; border: 1px solid #e2e8f0; transition: 0.3s; }
-        .s-item:hover { transform: scale(1.02); border-color: var(--blue); }
-        .s-photo-small { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; margin-right: 15px; border: 2px solid #f1f5f9; }
-
-        #adminBox { display: none; background: white; padding: 25px; border-radius: 20px; border: 2px solid var(--blue); margin-top: 20px; }
-        input, select, textarea { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #cbd5e1; box-sizing: border-box; }
-        .btn-gen { background: var(--blue); color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: 900; cursor: pointer; }
-        .btn-dl { background: #16a34a; color: white; border: none; padding: 12px 30px; border-radius: 30px; margin-top: 20px; font-weight: bold; cursor: pointer; }
-
-        .footer { text-align: center; padding: 40px; font-size: 11px; color: #64748b; border-top: 1px solid #e2e8f0; margin-top: 20px; }
+        .admin-controls { display: none; }
+        .footer { text-align: center; padding: 40px; font-size: 11px; color: #94a3b8; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <header>
-    <div style="font-weight: 900; font-size: 1.2rem;">PROGRESSIVE MOTHERS</div>
-    <div style="font-size: 11px; opacity: 0.8; margin-top: 5px;">Primary & Nursery Management System</div>
+    <div style="font-weight: 900; color: var(--purple); letter-spacing: 3px; font-size: 1.2rem;">PROGRESSIVE MOTHERS</div>
+    <div style="font-size: 10px; color: #94a3b8; font-weight: 900; margin-top: 5px;">NURSERY & PRIMARY SCHOOL</div>
 </header>
 
 <div class="container">
-    <div id="adminBox">
-        <p style="font-weight: 800; color: var(--blue); margin-top: 0;">Add New Student Record</p>
-        <input type="file" id="pic" accept="image/*" style="padding: 5px; border: none; background: #f8fafc;">
-        <input type="text" id="name" placeholder="Full Name">
-        <input type="text" id="phone" placeholder="Parent Phone">
+    <div id="adminPanel" class="glass-card admin-controls">
+        <p style="color:var(--purple); font-weight:900; margin-top:0;">ADMIN VAULT: REGISTER / EDIT</p>
+        <input type="file" id="pIn" accept="image/*">
+        <input type="text" id="pName" placeholder="Student Name">
+        <input type="text" id="pPhone" placeholder="Parent Contact (256...)">
         <div style="display:flex; gap:10px;">
-            <select id="class">
+            <select id="pClass">
                 <option value="Baby">Baby</option><option value="Middle">Middle</option><option value="Top">Top</option>
                 <option value="P.1">P.1</option><option value="P.2">P.2</option><option value="P.3">P.3</option>
                 <option value="P.4">P.4</option><option value="P.5">P.5</option><option value="P.6">P.6</option><option value="P.7">P.7</option>
             </select>
-            <input type="text" id="age" placeholder="Age">
+            <input type="text" id="pAge" placeholder="Age">
         </div>
-        <input type="text" id="loc" placeholder="Physical Location">
-        <textarea id="health" placeholder="Health Status (Allergies)"></textarea>
-        <button class="btn-gen" onclick="save()">REGISTER & GENERATE</button>
+        <input type="date" id="pDOB">
+        <input type="text" id="pLoc" placeholder="Physical Location">
+        <textarea id="pHealth" placeholder="Health Status (Allergies/Medical)"></textarea>
+        <select id="pStatus">
+            <option value="Active">Active Student</option>
+            <option value="Left">Left School</option>
+        </select>
+        <button class="btn-luxury" onclick="save()">SAVE RECORD</button>
+        <button onclick="copySMS()" style="width:100%; border:1px solid var(--purple); background:none; color:var(--purple); padding:10px; border-radius:10px; margin-top:10px; font-weight:bold;">📋 COPY CLASS SMS LIST</button>
     </div>
 
-    <input type="text" id="search" placeholder="🔍 Search name or class..." onkeyup="filter()" 
-           style="width:100%; box-sizing:border-box; padding:18px; border-radius:18px; border:2px solid #3b82f6; margin:25px 0; font-weight:bold;">
+    <input type="text" id="search" placeholder="🔍 Search name, class or status..." onkeyup="filter()" 
+           style="width:100%; box-sizing:border-box; padding:18px; border-radius:20px; border:2px solid #ddd6fe; margin:25px 0; background:white; font-weight:900;">
 
-    <div id="registry">Loading Database...</div>
+    <div id="list">Synchronizing Executive Database...</div>
 </div>
 
 <div id="idModal" onclick="this.style.display='none'">
-    <div class="id-card-design" id="printableID" onclick="event.stopPropagation()">
-        <div class="id-header">
-            <h1>PROGRESSIVE MOTHERS</h1>
-            <p>NURSERY & PRIMARY SCHOOL</p>
+    <div class="id-design" id="pdfArea" onclick="event.stopPropagation()">
+        <div class="id-head">
+            <h2 style="font-size:16px; margin:0;">PROGRESSIVE MOTHERS</h2>
+            <p style="font-size:8px; margin:2px 0;">NURSERY & PRIMARY SCHOOL</p>
         </div>
-        <div style="height: 60px;"></div>
-        <div class="id-body">
-            <img src="https://via.placeholder.com/150" class="id-photo-frame" id="idPhoto">
-            <h2 id="idName" style="margin: 0; color: var(--blue); font-size: 18px;">John Doe</h2>
-            <p id="idLin" style="margin: 5px 0; color: #b45309; font-weight: 900; font-size: 13px;">LIN: PM-0000</p>
-            
-            <table class="id-info-table">
-                <tr><td class="id-label">CLASS:</td><td id="idClassVal">P.1</td></tr>
-                <tr><td class="id-label">HEALTH:</td><td id="idHealthVal">Excellent</td></tr>
-                <tr><td class="id-label">LOCATION:</td><td id="idLocVal">Seeta</td></tr>
-                <tr><td class="id-label">CONTACT:</td><td id="idContactVal">+256 000 000</td></tr>
-            </table>
-            
-            <div style="margin-top: 15px; font-size: 8px; color: #94a3b8; border-top: 1px solid #eee; padding-top: 8px;">
-                Verified Registry • Eudes Media +256762992440 [cite: 2026-01-28]
+        <div style="height:60px;"></div>
+        <div style="padding:20px;">
+            <img id="idImg" src="" style="width:100px; height:100px; border-radius:50%; border:4px solid var(--purple); margin-top:-70px; background:white; object-fit:cover;">
+            <h2 id="idName" style="color:var(--purple); margin:10px 0 5px;">Student Name</h2>
+            <b id="idLin" style="color:#b45309; font-size:14px;">LIN: PM-0000</b>
+            <div style="text-align:left; font-size:11px; margin-top:15px; line-height:1.7; border-top:1px solid #eee; padding-top:10px;">
+                <b>CLASS:</b> <span id="idC"></span> | <b>AGE:</b> <span id="idA"></span><br>
+                <b>HEALTH:</b> <span id="idH"></span><br>
+                <b>LOCATION:</b> <span id="idL"></span><br>
+                <b>EMERGENCY:</b> <span id="idPh"></span>
+            </div>
+            <div style="margin-top:10px; font-size:8px; color:#94a3b8; border-top:1px dashed #ddd; padding-top:8px;">
+                Design: Eudes Media +256762992440 [cite: 2026-01-28]
             </div>
         </div>
     </div>
-    <button class="btn-dl" onclick="downloadID()">⬇️ DOWNLOAD PDF ID</button>
+    <button class="btn-luxury" onclick="downloadPDF()" style="width:200px; margin-top:20px;">⬇️ DOWNLOAD ID</button>
 </div>
 
 <div class="footer">
     DEVELOPED BY <b>EUDES MEDIA</b> [cite: 2026-01-28]<br>
     CONTACT: +256762992440 [cite: 2026-01-28]<br><br>
-    <span id="login" style="color:var(--blue); font-weight:bold; cursor:pointer;" onclick="auth()">ADMIN LOGIN</span>
+    <span id="loginBtn" style="color:var(--purple); cursor:pointer;" onclick="auth()">🔐 ADMIN LOGIN</span>
 </div>
 
 <script>
     const SB_URL = "https://kjftrwuucjdnhfwesrup.supabase.co"; 
     const SB_KEY = "sb_publishable_1PetUo8klWCLfupRq52CVg_Y_YYrzcO";
     const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
-    let dataCache = [];
+    let db = []; let editingId = null; let isAdmin = false;
 
-    function auth() { if(prompt("Access:") === "mothers.comit1") document.getElementById('adminBox').style.display='block'; }
+    function auth() {
+        if(prompt("Enter Admin Pass:") === "mothers.comit1") {
+            isAdmin = true; document.querySelectorAll('.admin-controls').forEach(el => el.style.display='block');
+            document.getElementById('loginBtn').innerText = "✅ ADMIN MODE"; render(db);
+        }
+    }
 
     async function save() {
-        const file = document.getElementById('pic').files[0];
-        let pUrl = "";
+        const file = document.getElementById('pIn').files[0];
+        let url = "";
         if(file) {
-            const fname = `id_${Date.now()}`;
+            const fname = `st_${Date.now()}`;
             const { data, error } = await supabaseClient.storage.from('students photos').upload(fname, file);
-            if(!error) pUrl = `${SB_URL}/storage/v1/object/public/students%20photos/${fname}`;
+            if(!error) url = `${SB_URL}/storage/v1/object/public/students%20photos/${fname}`;
         }
         const s = {
-            name: document.getElementById('name').value, contact: document.getElementById('phone').value,
-            class: document.getElementById('class').value, location: document.getElementById('loc').value,
-            health_status: document.getElementById('health').value, lin: "PM-"+Math.floor(1000+Math.random()*9000), 
-            photo_url: pUrl, status: 'Active'
+            name: document.getElementById('pName').value, contact: document.getElementById('pPhone').value,
+            class: document.getElementById('pClass').value, age: document.getElementById('pAge').value,
+            dob: document.getElementById('pDOB').value, location: document.getElementById('pLoc').value,
+            health_status: document.getElementById('pHealth').value, status: document.getElementById('pStatus').value,
+            lin: editingId ? undefined : "PM-"+Math.floor(1000+Math.random()*9000), photo_url: url || undefined
         };
-        await supabaseClient.from('students').insert([s]);
+        if(editingId) { await supabaseClient.from('students').update(s).eq('id', editingId); }
+        else { await supabaseClient.from('students').insert([s]); }
         location.reload();
     }
 
     async function load() {
         const { data } = await supabaseClient.from('students').select('*').order('name', { ascending: true });
-        dataCache = data || [];
-        render(dataCache);
+        db = data || []; render(db);
     }
 
     function render(list) {
-        const div = document.getElementById('registry');
-        div.innerHTML = "";
+        const div = document.getElementById('list'); div.innerHTML = "";
         list.forEach(s => {
+            const adminBtns = isAdmin ? `<br><button onclick="editS('${s.id}')" style="font-size:10px; color:blue; border:none; background:none; cursor:pointer;">Edit</button> | <button onclick="delS('${s.id}')" style="font-size:10px; color:red; border:none; background:none; cursor:pointer;">Delete</button>` : '';
             div.innerHTML += `
-                <div class="s-item" onclick="viewID('${s.id}')">
-                    <img src="${s.photo_url || 'https://via.placeholder.com/80'}" class="s-photo-small">
-                    <div style="flex:1">
-                        <b style="color:var(--blue); font-size:15px;">${s.name}</b>
-                        <div style="font-size:11px; color:#64748b;">${s.lin} | ${s.class}</div>
+                <div class="s-card" onclick="viewID('${s.id}')">
+                    <img src="${s.photo_url || 'https://via.placeholder.com/100'}" class="s-img">
+                    <div class="s-info">
+                        <b>${s.name}</b>
+                        <span>${s.lin} • ${s.class}</span><br>
+                        <span class="status-badge ${s.status === 'Active' ? 'active-bg' : 'left-bg'}">${s.status}</span>
+                        ${adminBtns}
                     </div>
-                    <a href="tel:${s.contact}" style="text-decoration:none; background:#22c55e; color:white; width:35px; height:35px; border-radius:50%; display:flex; align-items:center; justify-content:center;">📞</a>
+                    <a href="tel:${s.contact}" class="btn-luxury" style="width:40px; height:40px; padding:0; border-radius:50%; display:flex; align-items:center; justify-content:center; background:#22c55e;" onclick="event.stopPropagation()">📞</a>
                 </div>`;
         });
     }
 
     function viewID(id) {
-        const s = dataCache.find(x => x.id === id);
+        const s = db.find(x => x.id === id);
         document.getElementById('idName').innerText = s.name;
         document.getElementById('idLin').innerText = "LIN: " + s.lin;
-        document.getElementById('idClassVal').innerText = s.class;
-        document.getElementById('idHealthVal').innerText = s.health_status || "Excellent";
-        document.getElementById('idLocVal').innerText = s.location || "Not Set";
-        document.getElementById('idContactVal').innerText = s.contact;
-        document.getElementById('idPhoto').src = s.photo_url || 'https://via.placeholder.com/150';
+        document.getElementById('idC').innerText = s.class;
+        document.getElementById('idA').innerText = s.age;
+        document.getElementById('idH').innerText = s.health_status || "Good";
+        document.getElementById('idL').innerText = s.location || "N/A";
+        document.getElementById('idPh').innerText = s.contact;
+        document.getElementById('idImg').src = s.photo_url || 'https://via.placeholder.com/150';
         document.getElementById('idModal').style.display = 'flex';
     }
 
-    function downloadID() {
-        const element = document.getElementById('printableID');
-        html2pdf().from(element).save('ProgressiveMothers_ID.pdf');
+    function editS(id) {
+        const s = db.find(x => x.id === id); editingId = id;
+        document.getElementById('pName').value = s.name;
+        document.getElementById('pPhone').value = s.contact;
+        document.getElementById('pClass').value = s.class;
+        document.getElementById('pAge').value = s.age;
+        document.getElementById('pDOB').value = s.dob;
+        document.getElementById('pLoc').value = s.location;
+        document.getElementById('pHealth').value = s.health_status;
+        document.getElementById('pStatus').value = s.status;
+        window.scrollTo(0,0);
     }
 
+    async function delS(id) { if(confirm("Delete record?")) { await supabaseClient.from('students').delete().eq('id', id); location.reload(); } }
+    
+    function downloadPDF() { html2pdf().from(document.getElementById('pdfArea')).save('ID_Card.pdf'); }
+    
     function filter() {
         const v = document.getElementById('search').value.toLowerCase();
-        render(dataCache.filter(s => s.name.toLowerCase().includes(v) || s.class.toLowerCase().includes(v)));
+        render(db.filter(s => s.name.toLowerCase().includes(v) || s.class.toLowerCase().includes(v) || s.status.toLowerCase().includes(v)));
+    }
+
+    function copySMS() {
+        const v = document.getElementById('search').value.toLowerCase();
+        const nums = db.filter(s => s.class.toLowerCase().includes(v) || s.name.toLowerCase().includes(v)).map(s => s.contact).join(", ");
+        navigator.clipboard.writeText(nums); alert("Contacts copied for SMS!");
     }
     load();
 </script>
