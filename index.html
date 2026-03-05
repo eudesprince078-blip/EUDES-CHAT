@@ -19,28 +19,31 @@
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
         .stat-card { background: var(--blue); color: white; padding: 15px; border-radius: 12px; text-align: center; }
         .stat-card.class-stat { background: #059669; }
-        .stat-card h3 { margin: 0; font-size: 0.7rem; opacity: 0.9; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-card h3 { margin: 0; font-size: 0.7rem; opacity: 0.9; text-transform: uppercase; }
         .stat-card div { font-size: 1.8rem; font-weight: 800; }
 
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         input, textarea, select { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.95rem; box-sizing: border-box; }
         textarea { grid-column: span 2; height: 60px; }
         .full { grid-column: span 2; }
+        
+        /* Photo Upload Styling */
+        .photo-input-container { grid-column: span 2; background: #eff6ff; border: 2px dashed #bfdbfe; padding: 15px; border-radius: 8px; text-align: center; }
+        
+        /* Student Item Styling */
+        .student-item { padding: 15px; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; gap: 15px; }
+        .student-item.left-status { background: #fff1f2; opacity: 0.8; }
+        .stu-photo { width: 65px; height: 65px; border-radius: 50%; object-fit: cover; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); background: #e2e8f0; }
+        
+        .row-num { background: #e2e8f0; color: #475569; min-width: 25px; height: 25px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: bold; position: absolute; margin-top: -60px; margin-left: -5px; }
+
+        .badge-group { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 5px; }
+        .lin-badge { background: #dbeafe; color: var(--blue); padding: 3px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; }
+        .pay-badge { background: #fef3c7; color: var(--gold); padding: 3px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; }
+        
         .btn { padding: 14px; border-radius: 8px; font-weight: 600; cursor: pointer; border: none; width: 100%; transition: 0.3s; margin-top: 10px; }
         .btn-primary { background: var(--blue); color: white; }
-        
-        .search-box { position: sticky; top: 10px; z-index: 1000; margin-bottom: 15px; }
-        #searchField { border: 2px solid var(--blue); box-shadow: 0 4px 10px rgba(0,0,0,0.1); padding-left: 40px; background: white url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="%232563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>') no-repeat 12px center; }
-
-        .student-item { padding: 15px; border-bottom: 1px solid #f1f5f9; display: flex; align-items: flex-start; gap: 15px; transition: 0.2s; }
-        .student-item.left-status { background: #fff1f2; border-left: 5px solid var(--red); opacity: 0.8; }
-        .row-num { background: #e2e8f0; color: #475569; min-width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: bold; }
-        .badge-group { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 5px; }
-        .lin-badge { background: #dbeafe; color: var(--blue); padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
-        .pay-badge { background: #fef3c7; color: var(--gold); padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; border: 1px solid #fcd34d; }
-        .left-badge { background: var(--red); color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; }
-        
-        .footer { text-align: center; padding: 30px; color: #64748b; font-size: 0.85rem; line-height: 1.6; }
+        .footer { text-align: center; padding: 30px; color: #64748b; font-size: 0.85rem; }
         .support-links { color: var(--blue); font-weight: 700; text-decoration: none; }
         .btn-sm { padding: 5px 12px; font-size: 0.75rem; border-radius: 4px; color: white; border: none; cursor: pointer; margin-right: 5px; }
     </style>
@@ -54,22 +57,20 @@
 
 <div class="container">
     <div class="stats-grid">
-        <div class="stat-card">
-            <h3>Active Enrolled</h3>
-            <div id="totalCount">0</div>
-        </div>
-        <div class="stat-card class-stat">
-            <h3 id="classLabel">Active in Class</h3>
-            <div id="classCount">0</div>
-        </div>
+        <div class="stat-card"><h3>Active Enrolled</h3><div id="totalCount">0</div></div>
+        <div class="stat-card class-stat"><h3 id="classLabel">Class Count</h3><div id="classCount">0</div></div>
     </div>
 
     <div class="card">
-        <h2 id="formTitle" style="margin-top:0; color:var(--dark-blue); font-size: 1.2rem;">📝 Student Registration</h2>
+        <h2 id="formTitle" style="margin-top:0; color:var(--dark-blue); font-size: 1.2rem;">📝 Register Student</h2>
         <input type="hidden" id="editId">
         <div class="grid">
+            <div class="photo-input-container">
+                <label style="font-size: 0.8rem; font-weight: bold; color: var(--blue);">STUDENT PHOTO</label><br>
+                <input type="file" id="stuPhotoFile" accept="image/*" style="border:none; background:none; padding:5px;">
+            </div>
             <input type="text" id="stuName" placeholder="Full Name" required>
-            <input type="text" id="stuPayCode" placeholder="Payment Code (e.g. PAY-880)">
+            <input type="text" id="stuPayCode" placeholder="Payment Code">
             <input type="text" id="stuContact" placeholder="Contact Number">
             <input type="text" id="stuClass" placeholder="Class">
             <input type="text" id="stuAge" placeholder="Age">
@@ -81,26 +82,19 @@
                 <option value="Left">Left School</option>
             </select>
         </div>
-        <button class="btn btn-primary" id="saveBtn" onclick="handleSave()">Save Student Record</button>
+        <button class="btn btn-primary" id="saveBtn" onclick="handleSave()">Save Student & Photo</button>
         <button class="btn" id="cancelBtn" onclick="resetForm()" style="display:none; background:#cbd5e1;">Cancel Edit</button>
     </div>
 
-    <div class="search-box">
-        <input type="text" id="searchField" placeholder="Search Name, Class, or Payment Code..." onkeyup="filterStudents()">
-    </div>
-
     <div class="card">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-            <h2 style="margin:0; color:var(--dark-blue); font-size: 1.2rem;">📋 Student Records</h2>
-            <button onclick="generatePDF()" style="background:none; border:none; color:var(--blue); font-weight:bold; cursor:pointer;">📥 Download PDF</button>
-        </div>
-        <div id="studentList" style="margin-top:15px;">Connecting...</div>
+        <input type="text" id="searchField" style="border:2px solid var(--blue);" placeholder="🔍 Search Name, Class, or Code..." onkeyup="filterStudents()">
+        <div id="studentList" style="margin-top:20px;">Connecting to Eudes Media...</div>
     </div>
 </div>
 
 <div class="footer">
-    System Developed by <b>EUDES MEDIA</b><br>
-    WhatsApp: <a href="https://wa.me/256762992440" class="support-links">+256 762 992 440</a> | Call: <a href="tel:+256200930932" class="support-links">+256 200 930 932</a>
+    System by <b>EUDES MEDIA</b><br>
+    WhatsApp: <a href="https://wa.me/256762992440" class="support-links">+256 762 992 440</a>
 </div>
 
 <script>
@@ -113,12 +107,28 @@
     async function handleSave() {
         const id = document.getElementById('editId').value;
         const name = document.getElementById('stuName').value;
-        const firstLetter = name.charAt(0).toUpperCase();
-        const random4 = Math.floor(1000 + Math.random() * 9000);
+        const photoFile = document.getElementById('stuPhotoFile').files[0];
+        const saveBtn = document.getElementById('saveBtn');
+        
+        if (!name) return alert("Full Name is required");
+        saveBtn.disabled = true;
+        saveBtn.innerText = "Uploading Data...";
+
+        let photoUrl = "";
+        
+        // 1. Upload Photo if selected
+        if (photoFile) {
+            const fileName = Date.now() + "_" + photoFile.name;
+            const { data, error } = await supabaseClient.storage.from('student-photos').upload(fileName, photoFile);
+            if (!error) {
+                const { data: publicUrl } = supabaseClient.storage.from('student-photos').getPublicUrl(fileName);
+                photoUrl = publicUrl.publicUrl;
+            }
+        }
 
         const data = {
             name: name,
-            payment_code: document.getElementById('stuPayCode').value, // NEW FIELD
+            payment_code: document.getElementById('stuPayCode').value,
             contact: document.getElementById('stuContact').value,
             class: document.getElementById('stuClass').value,
             age: document.getElementById('stuAge').value,
@@ -128,50 +138,48 @@
             status: document.getElementById('stuStatus').value
         };
 
-        if (!name) return alert("Full Name is required");
+        if (photoUrl) data.photo_url = photoUrl;
 
         if (id) {
             await supabaseClient.from('students').update(data).eq('id', id);
         } else {
-            data.lin = `${firstLetter}-PMS-${random4}`;
+            data.lin = name.charAt(0).toUpperCase() + "-PMS-" + Math.floor(1000 + Math.random() * 9000);
             await supabaseClient.from('students').insert([data]);
         }
+
+        saveBtn.disabled = false;
+        saveBtn.innerText = "Save Student Record";
         resetForm();
         loadRecords();
     }
 
     async function loadRecords() {
-        const { data, error } = await supabaseClient.from('students').select('*').order('created_at', { ascending: false });
-        if (error) return;
+        const { data } = await supabaseClient.from('students').select('*').order('created_at', { ascending: false });
         allStudents = data;
-        
         const activeCount = allStudents.filter(s => s.status !== 'Left').length;
         document.getElementById('totalCount').innerText = activeCount;
         document.getElementById('classCount').innerText = activeCount;
-        
         display(data);
     }
 
     function display(data) {
         const listDiv = document.getElementById('studentList');
-        listDiv.innerHTML = data.length === 0 ? "No records found." : "";
+        listDiv.innerHTML = "";
         data.forEach((s, index) => {
             const isLeft = s.status === 'Left';
+            const defaultAvatar = "https://ui-avatars.com/api/?name=" + s.name + "&background=random";
             listDiv.innerHTML += `
                 <div class="student-item ${isLeft ? 'left-status' : ''}">
                     <div class="row-num">${index + 1}</div>
+                    <img src="${s.photo_url || defaultAvatar}" class="stu-photo">
                     <div style="flex:1;">
                         <div class="badge-group">
                             <span class="lin-badge">${s.lin}</span>
                             <span class="pay-badge">💳 ${s.payment_code || 'No Code'}</span>
-                            ${isLeft ? '<span class="left-badge">LEFT SCHOOL</span>' : ''}
                         </div>
-                        <b style="display:block; margin:5px 0; font-size:1.1rem; color:var(--dark-blue);">${s.name}</b>
-                        <div style="font-size:0.85rem; line-height:1.4;">
-                            <b>Class:</b> ${s.class} | <b>Loc:</b> ${s.location}<br>
-                            <b>Contact:</b> ${s.contact} | <b>Health:</b> ${s.health_status || 'Normal'}
-                        </div>
-                        <div style="margin-top:10px;">
+                        <b style="display:block; font-size:1.1rem; color:var(--dark-blue);">${s.name}</b>
+                        <small>Class: ${s.class} | Contact: ${s.contact}</small>
+                        <div style="margin-top:8px;">
                             <button class="btn-sm" style="background:#f59e0b;" onclick="editStudent('${s.id}')">Edit</button>
                             <button class="btn-sm" style="background:var(--red);" onclick="deleteStudent('${s.id}')">Delete</button>
                         </div>
@@ -182,17 +190,9 @@
 
     function filterStudents() {
         const term = document.getElementById('searchField').value.toLowerCase();
-        const searchResults = allStudents.filter(s => 
-            s.name.toLowerCase().includes(term) || 
-            s.lin.toLowerCase().includes(term) ||
-            s.class.toLowerCase().includes(term) ||
-            (s.payment_code && s.payment_code.toLowerCase().includes(term))
-        );
-
-        const activeSearchResults = searchResults.filter(s => s.status !== 'Left').length;
-        document.getElementById('classCount').innerText = activeSearchResults;
-        document.getElementById('classLabel').innerText = term ? `Active in "${term}"` : "Active Students";
-        display(searchResults);
+        const results = allStudents.filter(s => s.name.toLowerCase().includes(term) || s.class.toLowerCase().includes(term));
+        document.getElementById('classCount').innerText = results.filter(s => s.status !== 'Left').length;
+        display(results);
     }
 
     function editStudent(id) {
@@ -200,63 +200,23 @@
         document.getElementById('editId').value = s.id;
         document.getElementById('stuName').value = s.name;
         document.getElementById('stuPayCode').value = s.payment_code || "";
-        document.getElementById('stuContact').value = s.contact;
         document.getElementById('stuClass').value = s.class;
-        document.getElementById('stuAge').value = s.age;
-        document.getElementById('stuDob').value = s.dob;
-        document.getElementById('stuLoc').value = s.location;
-        document.getElementById('stuHealth').value = s.health_status;
-        document.getElementById('stuStatus').value = s.status || 'Active';
-        
-        document.getElementById('formTitle').innerText = "✏️ Editing: " + s.name;
-        document.getElementById('saveBtn').innerText = "Update Record";
-        document.getElementById('cancelBtn').style.display = "block";
+        document.getElementById('formTitle').innerText = "✏️ Editing Record";
         window.scrollTo(0,0);
     }
 
     async function deleteStudent(id) {
-        if(confirm("Permanently delete this student?")) {
+        if(confirm("Delete student?")) {
             await supabaseClient.from('students').delete().eq('id', id);
             loadRecords();
         }
     }
 
-    function generatePDF() {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        doc.setFontSize(16);
-        doc.text("PROGRESSIVE MOTHER’S SCHOOL", 105, 15, { align: "center" });
-        doc.setFontSize(10);
-        doc.text("OFFICIAL STUDENT & PAYMENT CODE DIRECTORY", 105, 22, { align: "center" });
-        
-        const tableBody = allStudents.map((s, index) => [
-            index + 1, s.lin, s.name, s.payment_code || '---', s.class, s.status
-        ]);
-
-        doc.autoTable({
-            head: [['#', 'LIN', 'Full Name', 'Pay Code', 'Class', 'Status']],
-            body: tableBody,
-            startY: 30,
-            theme: 'grid',
-            headStyles: { fillColor: [31, 58, 138] }
-        });
-        doc.save("PMS_Payment_Records.pdf");
-    }
-
     function resetForm() {
         document.getElementById('editId').value = "";
         document.getElementById('stuName').value = "";
-        document.getElementById('stuPayCode').value = "";
-        document.getElementById('stuContact').value = "";
-        document.getElementById('stuClass').value = "";
-        document.getElementById('stuAge').value = "";
-        document.getElementById('stuDob').value = "";
-        document.getElementById('stuLoc').value = "";
-        document.getElementById('stuHealth').value = "";
-        document.getElementById('stuStatus').value = "Active";
-        document.getElementById('formTitle').innerText = "📝 Student Registration";
-        document.getElementById('saveBtn').innerText = "Save Student Record";
-        document.getElementById('cancelBtn').style.display = "none";
+        document.getElementById('stuPhotoFile').value = "";
+        document.getElementById('formTitle').innerText = "📝 Register Student";
     }
 
     loadRecords();
