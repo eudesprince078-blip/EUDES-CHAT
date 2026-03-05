@@ -1,194 +1,181 @@
-<!DOCTYPE html>
+     <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Progressive Mothers | Diamond Registry</title>
+    <title>Progressive Mothers | Diamond Portal</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
-        :root { --blue: #0ea5e9; --purple: #4c1d95; --pink: #ec4899; --bg: #fdf2f8; }
-        body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); color: #1e293b; padding-bottom: 60px; }
+        :root { --pms-blue: #0ea5e9; --pms-purple: #4c1d95; --pms-pink: #ec4899; }
+        body { font-family: 'Inter', sans-serif; margin: 0; background: #fdf2f8; padding-bottom: 80px; }
         
-        /* THE PROFESSIONAL HEADER YOU LIKE */
-        header { background: linear-gradient(135deg, var(--blue), var(--purple)); color: white; padding: 25px; text-align: center; border-radius: 0 0 35px 35px; box-shadow: 0 8px 20px rgba(0,0,0,0.15); position: sticky; top: 0; z-index: 1000; }
-        .motto { font-size: 13px; font-weight: bold; font-style: italic; opacity: 0.9; margin-top: 5px; }
+        /* HEADER FROM SCREENSHOT */
+        header { background: linear-gradient(135deg, var(--pms-blue), var(--pms-purple)); color: white; padding: 25px; text-align: center; border-radius: 0 0 40px 40px; box-shadow: 0 8px 20px rgba(0,0,0,0.1); position: sticky; top:0; z-index:100; }
+        .motto { font-size: 13px; font-weight: bold; font-style: italic; margin-top: 5px; opacity: 0.9; }
         
         .container { max-width: 480px; margin: 0 auto; padding: 15px; }
-
         #adminArea, #logoutBtn { display: none; }
+        
         .card { background: white; padding: 25px; border-radius: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.06); margin-bottom: 20px; border: 1px solid #fbcfe8; }
+        input, select, textarea { width: 100%; padding: 15px; margin-bottom: 12px; border-radius: 15px; border: 1.5px solid #e2e8f0; box-sizing: border-box; font-size: 15px; }
         
-        /* FORM INPUTS */
-        input, select, textarea { width: 100%; padding: 14px; margin-bottom: 12px; border-radius: 15px; border: 1.5px solid #e2e8f0; box-sizing: border-box; font-size: 15px; background: #f8fafc; }
-        input:focus { border-color: var(--pink); outline: none; background: white; }
+        /* PINK BUTTON FROM SCREENSHOT */
+        .btn-unlock { background: var(--pms-pink); color: white; border: none; width: 100%; padding: 18px; border-radius: 20px; font-weight: 900; cursor: pointer; font-size: 16px; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 8px 15px rgba(236, 72, 153, 0.3); }
         
-        .btn-main { background: var(--pink); color: white; border: none; width: 100%; padding: 16px; border-radius: 20px; font-weight: 900; cursor: pointer; font-size: 16px; box-shadow: 0 6px 15px rgba(236, 72, 153, 0.3); transition: 0.2s; }
-        .btn-main:active { transform: scale(0.97); }
-
-        /* SEARCH BAR */
-        #search { padding: 16px; border-radius: 20px; border: 2.5px solid var(--blue); font-weight: bold; margin-bottom: 20px; background: white; }
-
-        /* STUDENT BOX - PREMIUM LOOK */
-        .student-item { background: white; padding: 20px; border-radius: 30px; margin-bottom: 20px; border-left: 10px solid var(--purple); position: relative; box-shadow: 0 5px 15px rgba(0,0,0,0.03); }
-        .st-header { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
-        .st-img { width: 80px; height: 80px; border-radius: 20px; object-fit: cover; border: 3px solid #f0f9ff; background: #f1f5f9; }
-        .st-title b { font-size: 19px; color: var(--purple); display: block; text-transform: uppercase; }
-        .st-title span { font-size: 12px; color: var(--blue); font-weight: 800; }
-
-        .st-grid { background: #f8fafc; padding: 15px; border-radius: 20px; font-size: 13px; line-height: 1.7; color: #475569; }
+        /* LIST ITEM DISPLAYING ALL NUMBERS */
+        .s-box { background: white; padding: 22px; border-radius: 30px; margin-bottom: 20px; border-left: 12px solid var(--pms-purple); position: relative; box-shadow: 0 5px 20px rgba(0,0,0,0.04); }
+        .s-lin { color: var(--pms-pink); font-weight: 900; font-size: 14px; display: block; margin-bottom: 4px; }
+        .s-name { font-size: 22px; color: var(--pms-purple); font-weight: 900; text-transform: uppercase; display: block; }
         
-        .st-tools { display: flex; justify-content: space-between; margin-top: 15px; padding-top: 15px; border-top: 1px dashed #eee; }
-        .tool-link { font-size: 11px; font-weight: 900; background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 4px; text-transform: uppercase; }
+        .s-info-grid { background: #f8fafc; padding: 15px; border-radius: 20px; margin-top: 15px; font-size: 14px; line-height: 1.8; color: #475569; }
+        .s-info-grid b { color: var(--pms-purple); font-weight: 800; }
+
+        .s-tools { display: flex; justify-content: space-between; margin-top: 18px; border-top: 1px dashed #e2e8f0; padding-top: 15px; }
+        .t-btn { font-size: 12px; font-weight: 900; border: none; background: none; cursor: pointer; display: flex; align-items: center; gap: 6px; }
         .t-edit { color: #2563eb; } .t-del { color: #dc2626; } .t-view { color: #b45309; }
 
-        .call-icon { position: absolute; right: 20px; top: 20px; background: #22c55e; color: white; width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none; box-shadow: 0 5px 12px rgba(34,197,94,0.3); }
-
-        /* MODAL */
-        #idModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 9999; align-items: center; justify-content: center; flex-direction: column; padding: 20px; }
-        .id-card { width: 330px; background: white; border-radius: 30px; overflow: hidden; text-align: center; }
-        .id-top { background: var(--purple); color: white; padding: 20px; }
-
-        .footer { text-align: center; padding: 30px 10px; font-size: 10px; color: #94a3b8; font-weight: bold; }
+        #idModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 1000; align-items: center; justify-content: center; flex-direction: column; padding: 20px; }
+        .id-card { width: 330px; background: white; border-radius: 30px; overflow: hidden; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        .id-head { background: var(--pms-purple); color: white; padding: 20px; }
+        
+        .footer { text-align: center; padding: 40px 20px; font-size: 11px; color: #94a3b8; font-weight: bold; line-height: 1.6; }
     </style>
 </head>
 <body>
 
 <header>
-    <div style="font-weight: 900; font-size: 1.5rem; letter-spacing: 1px;">PROGRESSIVE MOTHERS</div>
+    <div style="font-weight: 900; font-size: 1.5rem; letter-spacing: 1.5px;">PROGRESSIVE MOTHERS</div>
     <div class="motto">"With God everything is possible"</div>
-    <button id="logoutBtn" onclick="logout()" style="margin-top:10px; background:rgba(255,255,255,0.2); color:white; border:1px solid white; padding:5px 15px; border-radius:10px; font-weight:bold; cursor:pointer;">LOGOUT ADMIN</button>
+    <button id="logoutBtn" onclick="logout()" style="margin-top:15px; background:rgba(255,255,255,0.2); color:white; border:1px solid white; padding:8px 20px; border-radius:12px; font-weight:bold; cursor:pointer; font-size:11px;">LOGOUT ADMIN</button>
 </header>
 
 <div class="container">
-    <div id="loginBox" class="card" style="text-align:center;">
-        <h3 style="color:var(--purple); margin-top:0;">Diamond Access Portal</h3>
-        <input type="password" id="sysPass" placeholder="Enter System Password">
-        <button class="btn-main" onclick="authenticate()">UNLOCK DASHBOARD</button>
+    <div id="loginBox" class="card" style="text-align: center;">
+        <h3 style="color:var(--pms-purple); margin-bottom:10px;">Diamond Access Portal</h3>
+        <p style="font-size:12px; color:#64748b; margin-bottom:20px;">Please enter the system password to manage records.</p>
+        <input type="password" id="pass" placeholder="Enter System Password">
+        <button class="btn-unlock" onclick="auth()">Unlock Dashboard</button>
     </div>
 
     <div id="adminArea" class="card">
-        <h3 id="formTitle" style="color:var(--purple); margin:0 0 15px;">Register Student</h3>
-        <label style="font-size:11px; font-weight:bold; color:var(--blue);">Student Passport Photo</label>
+        <h3 id="formTitle" style="color:var(--pms-purple); margin-top:0;">Student Registration</h3>
+        <label style="font-size:12px; font-weight:bold; color:var(--pms-blue);">Upload Passport Photo</label>
         <input type="file" id="fPhoto" accept="image/*" style="padding:10px;">
         
         <input type="text" id="fName" placeholder="Full Student Name">
-        <input type="text" id="fPhone" placeholder="Parent Contact Number">
+        <input type="text" id="fPhone" placeholder="Parent Contact (+256...)">
         
         <div style="display:flex; gap:10px;">
-            <div style="flex:1;"><label style="font-size:10px;font-weight:bold;">DOB</label><input type="date" id="fDOB" onchange="calcAge()"></div>
-            <div style="flex:1;"><label style="font-size:10px;font-weight:bold;">Age</label><input type="text" id="fAge" placeholder="Age" readonly style="background:#f1f5f9;"></div>
+            <div style="flex:1;"><label style="font-size:11px;font-weight:bold;">DOB</label><input type="date" id="fDOB" onchange="autoAge()"></div>
+            <div style="flex:1;"><label style="font-size:11px;font-weight:bold;">Age</label><input type="text" id="fAge" placeholder="Auto-Age" readonly style="background:#f1f5f9;"></div>
         </div>
 
         <select id="fClass">
-            <option>Baby</option><option>Middle</option><option>Top</option>
+            <option>Baby Class</option><option>Middle Class</option><option>Top Class</option>
             <option>P.1</option><option>P.2</option><option>P.3</option><option>P.4</option>
             <option>P.5</option><option>P.6</option><option>P.7</option>
         </select>
         
-        <input type="text" id="fLoc" placeholder="Physical Address / Stay Location">
-        <textarea id="fHealth" placeholder="Health Status / Allergies" style="height:70px;"></textarea>
+        <input type="text" id="fLoc" placeholder="Stay Location / Village">
+        <textarea id="fHealth" placeholder="Health Status (Allergies/Conditions)" style="height:70px;"></textarea>
         
-        <button class="btn-main" id="btnSave" onclick="saveData()">SAVE STUDENT RECORD</button>
-        <div id="loader" style="display:none; text-align:center; color:var(--pink); font-weight:bold; margin-top:10px;">💾 Saving... Please wait.</div>
+        <button class="btn-unlock" id="btnSave" onclick="saveRecord()">Save Academic Record</button>
+        <div id="saveStatus" style="display:none; text-align:center; color:var(--pms-pink); font-weight:bold; margin-top:15px; font-size:14px;">💾 Securing Data...</div>
     </div>
 
-    <input type="text" id="search" placeholder="🔍 Search name, class or address..." onkeyup="filter()">
-
-    <div id="studentList" style="text-align:center; color:#94a3b8; font-weight:bold;">Initializing Diamond Server...</div>
+    <input type="text" id="search" placeholder="🔍 Search name, LIN or class..." onkeyup="filterList()" style="padding:18px; border-radius:20px; border:2px solid var(--pms-blue); margin-bottom:25px; font-weight:bold; box-shadow: 0 5px 15px rgba(0,0,0,0.05);">
+    
+    <div id="mainList"></div>
 </div>
 
 <div id="idModal" onclick="this.style.display='none'">
     <div class="id-card" id="idRender" onclick="event.stopPropagation()">
-        <div class="id-top">
-            <h4 style="margin:0;">PROGRESSIVE MOTHERS</h4>
-            <small style="font-size:8px;">With God everything is possible</small>
+        <div class="id-head">
+            <h3 style="margin:0; letter-spacing:1px;">PROGRESSIVE MOTHERS</h3>
+            <div style="font-size:9px; font-weight:bold;">With God everything is possible</div>
         </div>
-        <div style="height:60px;"></div>
-        <div style="padding:25px;">
-            <img id="idPhoto" src="" style="width:110px; height:110px; border-radius:25px; border:5px solid var(--purple); margin-top:-80px; background:white; object-fit:cover;">
-            <h2 id="idName" style="color:var(--purple); margin:15px 0 5px; text-transform:uppercase;">NAME</h2>
-            <b id="idLin" style="color:var(--pink);">LIN: PM-0000</b>
-            <div style="text-align:left; font-size:11px; margin-top:15px; border-top:1px solid #eee; padding-top:10px; line-height:1.8;">
-                <b>CLASS:</b> <span id="idC" style="float:right;"></span><br>
-                <b>AGE:</b> <span id="idA" style="float:right;"></span><br>
-                <b>HEALTH:</b> <span id="idH" style="float:right; color:red;"></span><br>
-                <b>PARENT:</b> <span id="idP" style="float:right;"></span>
+        <div style="padding:30px;">
+            <img id="idImg" src="" style="width:120px; height:120px; border-radius:30px; border:6px solid var(--pms-purple); margin-top:-90px; background:white; object-fit:cover; box-shadow: 0 10px 20px rgba(0,0,0,0.1);">
+            <h2 id="idName" style="color:var(--pms-purple); margin:20px 0 5px; text-transform:uppercase;">NAME</h2>
+            <b id="idLin" style="color:var(--pms-pink); letter-spacing:2px;">LIN: PM-0000</b>
+            <div style="text-align:left; font-size:12px; margin-top:20px; border-top:2px solid #f1f5f9; padding-top:15px; line-height:2; color:#475569;">
+                <b>CLASS:</b> <span id="idC" style="float:right; color:var(--pms-purple);"></span><br>
+                <b>AGE:</b> <span id="idA" style="float:right; color:var(--pms-purple);"></span><br>
+                <b>HEALTH:</b> <span id="idH" style="float:right; color:#dc2626;"></span><br>
+                <b>PARENT:</b> <span id="idPh" style="float:right; color:var(--pms-blue);"></span>
             </div>
-            <div style="margin-top:20px; font-size:8px; color:#94a3b8; border-top:1px dashed #ddd; padding-top:10px;">Eudes Media Diamond Support • +256762992440</div>
+            <div style="margin-top:25px; font-size:10px; color:#94a3b8; border-top:1px dashed #ddd; padding-top:15px;">Eudes Media Support • +256762992440</div>
         </div>
     </div>
-    <button class="btn-main" onclick="downloadID()" style="width:220px; margin-top:20px; background:#16a34a;">⬇️ DOWNLOAD ID PDF</button>
+    <button class="btn-unlock" onclick="download()" style="width:240px; margin-top:25px; background:#16a34a;">⬇️ DOWNLOAD ID PDF</button>
 </div>
 
 <div class="footer">
     Developed by <b>Eudes Media</b> [cite: 2026-01-28]<br>
-    Support: +256762992440 | WhatsApp: +256200930932
+    Support: +256762992440 | WhatsApp: +256762992440 [cite: 2026-01-28]
 </div>
 
 <script>
     const SB_URL = "https://kjftrwuucjdnhfwesrup.supabase.co"; 
     const SB_KEY = "sb_publishable_1PetUo8klWCLfupRq52CVg_Y_YYrzcO";
     const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
-    
-    let db = []; let editId = null;
+    let studentDB = []; let editID = null;
 
-    if(localStorage.getItem('pms_auth') === 'true') { authenticate(true); }
+    if(localStorage.getItem('pms_diamond_auth') === 'true') { auth(true); }
 
-    function authenticate(auto = false) {
-        if(auto || document.getElementById('sysPass').value === "mothers.comit1") {
-            localStorage.setItem('pms_auth', 'true');
+    function auth(isAuto = false) {
+        if(isAuto || document.getElementById('pass').value === "mothers.comit1") {
+            localStorage.setItem('pms_diamond_auth', 'true');
             document.getElementById('loginBox').style.display = 'none';
             document.getElementById('adminArea').style.display = 'block';
             document.getElementById('logoutBtn').style.display = 'inline-block';
-            fetch();
-        } else if(!auto) { alert("Diamond Access Denied."); }
+            loadData();
+        } else if(!isAuto) { alert("Diamond Access Denied."); }
     }
 
     function logout() { localStorage.clear(); location.reload(); }
-
-    function calcAge() {
+    
+    function autoAge() {
         const dob = new Date(document.getElementById('fDOB').value);
-        document.getElementById('fAge').value = (new Date().getFullYear() - dob.getFullYear()) + " Years";
+        if(!isNaN(dob)) {
+            document.getElementById('fAge').value = (new Date().getFullYear() - dob.getFullYear()) + " Years";
+        }
     }
 
-    async function fetch() {
+    async function loadData() {
         const { data } = await supabaseClient.from('students').select('*').order('name');
-        db = data || []; render(db);
+        studentDB = data || []; display(studentDB);
     }
 
-    function render(list) {
-        const box = document.getElementById('studentList'); box.innerHTML = "";
+    function display(list) {
+        const box = document.getElementById('mainList');
+        box.innerHTML = list.length ? "" : "<div style='text-align:center; color:#94a3b8; font-weight:bold;'>Establishing Diamond Server Connection...</div>";
         list.forEach(s => {
             box.innerHTML += `
-                <div class="student-item">
-                    <div class="st-header">
-                        <img src="${s.photo_url || 'https://via.placeholder.com/80'}" class="st-img">
-                        <div class="st-title">
-                            <b>${s.name}</b>
-                            <span>${s.class} | ${s.lin}</span>
-                        </div>
+                <div class="s-box">
+                    <span class="s-lin">${s.lin}</span>
+                    <span class="s-name">${s.name}</span>
+                    <div class="s-info-grid">
+                        <b>📞 Parent Contact:</b> ${s.contact}<br>
+                        <b>📍 Stay Location:</b> ${s.location}<br>
+                        <b>🎂 Age / DOB:</b> ${s.age} (${s.dob})<br>
+                        <b>📚 Academic Class:</b> ${s.class}<br>
+                        <b style="color:#dc2626;">🏥 Health Status:</b> ${s.health_status || 'Excellent'}
                     </div>
-                    <div class="st-grid">
-                        📞 <b>Parent:</b> ${s.contact}<br>
-                        📍 <b>Stay:</b> ${s.location}<br>
-                        🎂 <b>Age:</b> ${s.age}<br>
-                        🏥 <b>Health:</b> ${s.health_status || 'Excellent'}
+                    <div class="s-tools">
+                        <button class="t-btn t-edit" onclick="triggerEdit('${s.id}')">✏️ EDIT DATA</button>
+                        <button class="t-btn t-view" onclick="triggerID('${s.id}')">🪪 VIEW ID</button>
+                        <button class="t-btn t-del" onclick="triggerDelete('${s.id}')">🗑️ REMOVE</button>
                     </div>
-                    <div class="st-tools">
-                        <button class="tool-link t-edit" onclick="startEdit('${s.id}')">✏️ Edit Data</button>
-                        <button class="tool-link t-view" onclick="openID('${s.id}')">🪪 View I.D</button>
-                        <button class="tool-link t-del" onclick="delRec('${s.id}')">🗑️ Remove</button>
-                    </div>
-                    <a href="tel:${s.contact}" class="call-icon">📞</a>
                 </div>`;
         });
     }
 
-    function startEdit(id) {
-        const s = db.find(x => x.id === id);
-        editId = id;
-        document.getElementById('formTitle').innerText = "Edit: " + s.name;
+    function triggerEdit(id) {
+        const s = studentDB.find(x => x.id === id);
+        editID = id;
+        document.getElementById('formTitle').innerText = "Updating Record: " + s.name;
         document.getElementById('fName').value = s.name;
         document.getElementById('fPhone').value = s.contact;
         document.getElementById('fDOB').value = s.dob;
@@ -196,58 +183,59 @@
         document.getElementById('fClass').value = s.class;
         document.getElementById('fLoc').value = s.location;
         document.getElementById('fHealth').value = s.health_status;
-        document.getElementById('btnSave').innerText = "CONFIRM UPDATES";
+        document.getElementById('btnSave').innerText = "Confirm Diamond Update";
         window.scrollTo({top: 0, behavior: 'smooth'});
     }
 
-    async function saveData() {
-        const loader = document.getElementById('loader'); loader.style.display = 'block';
+    async function saveRecord() {
+        const status = document.getElementById('saveStatus');
+        status.style.display = 'block';
+        
         const file = document.getElementById('fPhoto').files[0];
         let url = "";
-        
         if(file) {
             const fname = `st_${Date.now()}`;
-            const { data, error } = await supabaseClient.storage.from('students photos').upload(fname, file);
-            if(!error) url = `${SB_URL}/storage/v1/object/public/students%20photos/${fname}`;
+            const { data } = await supabaseClient.storage.from('students photos').upload(fname, file);
+            if(data) url = `${SB_URL}/storage/v1/object/public/students%20photos/${fname}`;
         }
 
-        const obj = {
+        const info = {
             name: document.getElementById('fName').value, contact: document.getElementById('fPhone').value,
             dob: document.getElementById('fDOB').value, age: document.getElementById('fAge').value,
             class: document.getElementById('fClass').value, location: document.getElementById('fLoc').value,
             health_status: document.getElementById('fHealth').value
         };
 
-        if(editId) {
-            if(url) obj.photo_url = url;
-            await supabaseClient.from('students').update(obj).eq('id', editId);
+        if(editID) {
+            if(url) info.photo_url = url;
+            await supabaseClient.from('students').update(info).eq('id', editID);
         } else {
-            obj.lin = "PM-" + Math.floor(1000 + Math.random() * 9000);
-            obj.photo_url = url;
-            await supabaseClient.from('students').insert([obj]);
+            info.lin = "PM-" + Math.floor(1000 + Math.random() * 9000);
+            info.photo_url = url;
+            await supabaseClient.from('students').insert([info]);
         }
         location.reload();
     }
 
-    async function delRec(id) { if(confirm("Permanently remove record?")) { await supabaseClient.from('students').delete().eq('id', id); location.reload(); } }
+    async function triggerDelete(id) { if(confirm("Permanently delete this diamond record?")) { await supabaseClient.from('students').delete().eq('id', id); location.reload(); } }
 
-    function openID(id) {
-        const s = db.find(x => x.id === id);
+    function triggerID(id) {
+        const s = studentDB.find(x => x.id === id);
         document.getElementById('idName').innerText = s.name;
         document.getElementById('idLin').innerText = "LIN: " + s.lin;
         document.getElementById('idC').innerText = s.class;
         document.getElementById('idA').innerText = s.age;
-        document.getElementById('idH').innerText = s.health_status || "Excellent";
-        document.getElementById('idP').innerText = s.contact;
-        document.getElementById('idPhoto').src = s.photo_url || 'https://via.placeholder.com/150';
+        document.getElementById('idPh').innerText = s.contact;
+        document.getElementById('idH').innerText = s.health_status || "Fit";
+        document.getElementById('idImg').src = s.photo_url || 'https://via.placeholder.com/150';
         document.getElementById('idModal').style.display = 'flex';
     }
 
-    function downloadID() { html2pdf().from(document.getElementById('idRender')).save('Diamond_ID.pdf'); }
-    function filter() {
+    function download() { html2pdf().from(document.getElementById('idRender')).save('Progressive_Diamond_ID.pdf'); }
+    function filterList() {
         const q = document.getElementById('search').value.toLowerCase();
-        render(db.filter(x => x.name.toLowerCase().includes(q) || x.class.toLowerCase().includes(q)));
+        display(studentDB.filter(x => x.name.toLowerCase().includes(q) || x.lin.toLowerCase().includes(q) || x.class.toLowerCase().includes(q)));
     }
 </script>
 </body>
-</html>
+</html>             
