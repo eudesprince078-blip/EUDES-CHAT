@@ -6,17 +6,17 @@
     <title>Progressive Mother’s School | Eudes Media</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --brand-purple: #673ab7; --white: #ffffff; }
+        :root { --brand-blue: #673ab7; --white: #ffffff; }
         body { font-family: 'Segoe UI', sans-serif; background: #f4f0fa; margin: 0; padding: 0; }
-        header { background: var(--brand-purple); color: white; padding: 30px; text-align: center; border-bottom: 5px solid #4527a0; }
+        header { background: var(--brand-blue); color: white; padding: 30px; text-align: center; border-bottom: 5px solid #4527a0; }
         .container { max-width: 600px; margin: 20px auto; padding: 15px; }
         .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        h2 { color: var(--brand-purple); border-left: 5px solid var(--brand-purple); padding-left: 10px; margin-bottom: 20px; }
+        h2 { color: var(--brand-blue); border-left: 5px solid var(--brand-blue); padding-left: 10px; margin-bottom: 20px; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         input, textarea { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
         textarea { grid-column: span 2; height: 60px; }
-        button { width: 100%; padding: 15px; background: var(--brand-purple); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1.1rem; }
-        .student-card { background: #fff; padding: 15px; border-radius: 10px; border-left: 5px solid var(--brand-purple); margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        button { width: 100%; padding: 15px; background: var(--brand-blue); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1.1rem; }
+        .student-card { background: #fff; padding: 15px; border-radius: 10px; border-left: 5px solid var(--brand-blue); margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .footer { text-align: center; font-size: 0.9rem; color: #666; padding: 20px; }
     </style>
 </head>
@@ -78,13 +78,14 @@
         if (error) {
             alert("Error: " + error.message);
         } else {
-            alert("Saved! LIN: " + studentData.lin);
+            alert("Saved Successfully! LIN: " + studentData.lin);
             location.reload();
         }
         btn.disabled = false;
     }
 
     async function load() {
+        // Select '*' is key here to avoid connection errors with new columns
         const { data, error } = await supabase.from('students').select('*').order('created_at', { ascending: false });
         const listDiv = document.getElementById('studentList');
         if (error) { listDiv.innerHTML = "Error loading data."; return; }
