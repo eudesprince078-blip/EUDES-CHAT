@@ -12,19 +12,12 @@
         .container { max-width: 600px; margin: 20px auto; padding: 15px; }
         .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 20px; }
         h2 { color: var(--brand-purple); border-left: 5px solid var(--brand-purple); padding-left: 10px; margin-bottom: 20px; }
-        
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        input, select, textarea { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 1rem; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        input, textarea { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
         textarea { grid-column: span 2; height: 60px; }
-        
         button { width: 100%; padding: 15px; background: var(--brand-purple); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1.1rem; }
-        button:disabled { background: #ccc; }
-        
         .student-card { background: #fff; padding: 15px; border-radius: 10px; border-left: 5px solid var(--brand-purple); margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .student-details { font-size: 0.85rem; color: #555; display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top: 5px; }
-        
-        .footer { text-align: center; font-size: 0.9rem; color: #666; padding: 30px; }
-        .footer b { color: var(--brand-purple); }
+        .footer { text-align: center; font-size: 0.9rem; color: #666; padding: 20px; }
     </style>
 </head>
 <body>
@@ -38,13 +31,13 @@
     <div class="card">
         <h2>Full Student Registration</h2>
         <div class="grid">
-            <input type="text" id="stuName" placeholder="Full Name">
+            <input type="text" id="stuName" placeholder="Student Full Name">
             <input type="text" id="stuContact" placeholder="Contact Number">
             <input type="text" id="stuClass" placeholder="Class">
-            <input type="number" id="stuAge" placeholder="Age">
-            <input type="date" id="stuDob" placeholder="Date of Birth">
+            <input type="text" id="stuAge" placeholder="Age">
+            <input type="date" id="stuDob">
             <input type="text" id="stuLoc" placeholder="Physical Location">
-            <textarea id="stuHealth" placeholder="Health Status (e.g. Good, Allergies)"></textarea>
+            <textarea id="stuHealth" placeholder="Health Status (Allergies, etc.)"></textarea>
         </div>
         <button id="saveBtn" onclick="register()">Save Student Record</button>
     </div>
@@ -56,24 +49,17 @@
 </div>
 
 <div class="footer">
-    System Managed by <b>Eudes Media</b><br>
-    Support: <b>+256762992440</b>
+    Developed by <b>Eudes Media</b> | Support: <b>+256762992440</b>
 </div>
 
 <script>
-    // Your Connection
     const SB_URL = "https://kjftrwuucjdnhfwesrup.supabase.co"; 
     const SB_KEY = "sb_publishable_1PetUo8klWCLfupRq52CVg_Y_YYrzcO";
     const supabase = libSupabase.createClient(SB_URL, SB_KEY);
 
-    // Auto-generate LIN Number
-    function generateLIN() {
-        return "PMS-" + Math.floor(1000 + Math.random() * 9000);
-    }
-
     async function register() {
         const btn = document.getElementById('saveBtn');
-        const data = {
+        const studentData = {
             name: document.getElementById('stuName').value,
             contact: document.getElementById('stuContact').value,
             class: document.getElementById('stuClass').value,
@@ -81,59 +67,37 @@
             dob: document.getElementById('stuDob').value,
             location: document.getElementById('stuLoc').value,
             health_status: document.getElementById('stuHealth').value,
-            lin: generateLIN() 
+            lin: "PMS-" + Math.floor(1000 + Math.random() * 9000)
         };
 
-        if (!data.name || !data.class) return alert("Please enter Name and Class");
-
+        if (!studentData.name) return alert("Please enter a name");
         btn.disabled = true;
-        btn.innerText = "Saving to School Cloud...";
+        btn.innerText = "Saving...";
 
-        try {
-            const { error } = await supabase.from('students').insert([data]);
-            if (error) throw error;
-            alert("Registered Successfully! LIN: " + data.lin);
-            location.reload(); 
-        } catch (e) {
-            alert("Database Error: " + e.message);
-        } finally {
-            btn.disabled = false;
-            btn.innerText = "Save Student Record";
+        const { error } = await supabase.from('students').insert([studentData]);
+        if (error) {
+            alert("Error: " + error.message);
+        } else {
+            alert("Saved! LIN: " + studentData.lin);
+            location.reload();
         }
+        btn.disabled = false;
     }
 
     async function load() {
+        const { data, error } = await supabase.from('students').select('*').order('created_at', { ascending: false });
         const listDiv = document.getElementById('studentList');
-        try {
-            // We select ALL columns to match your new table
-            const { data, error } = await supabase
-                .from('students')
-                .select('*')
-                .order('created_at', { ascending: false });
+        if (error) { listDiv.innerHTML = "Error loading data."; return; }
+        if (data.length === 0) { listDiv.innerHTML = "No students registered yet."; return; }
 
-            if (error) throw error;
-
-            if (!data || data.length === 0) {
-                listDiv.innerHTML = "No students found in the cloud.";
-            } else {
-                listDiv.innerHTML = "";
-                data.forEach(s => {
-                    listDiv.innerHTML += `
-                        <div class="student-card">
-                            <b>${s.name} (${s.lin || 'No LIN'})</b>
-                            <div class="student-details">
-                                <span>Class: ${s.class}</span>
-                                <span>Contact: ${s.contact || 'N/A'}</span>
-                                <span>Age: ${s.age || 'N/A'}</span>
-                                <span>Location: ${s.location || 'N/A'}</span>
-                                <span>Health: ${s.health_status || 'N/A'}</span>
-                            </div>
-                        </div>`;
-                });
-            }
-        } catch (e) {
-            listDiv.innerHTML = "Connection Error. Check your Supabase columns.";
-        }
+        listDiv.innerHTML = "";
+        data.forEach(s => {
+            listDiv.innerHTML += `
+                <div class="student-card">
+                    <b>${s.name} (${s.lin})</b><br>
+                    <small>Class: ${s.class} | Health: ${s.health_status}</small>
+                </div>`;
+        });
     }
     load();
 </script>
