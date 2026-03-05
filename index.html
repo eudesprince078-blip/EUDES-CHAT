@@ -3,68 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PMS Manager | Eudes Media</title>
+    <title>PMS | Eudes Media</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        :root { --blue: #2563eb; --dark-blue: #1e3a8a; --bg: #f1f5f9; --white: #ffffff; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding-bottom: 50px; }
-        header { background: var(--dark-blue); color: white; padding: 25px; text-align: center; border-bottom: 5px solid var(--blue); }
-        .container { max-width: 600px; margin: -20px auto 0; padding: 0 15px; }
-        .card { background: var(--white); padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        :root { --blue: #2563eb; --dark-blue: #1e3a8a; --bg: #f8fafc; --white: #ffffff; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: #1e293b; margin: 0; padding-bottom: 40px; }
+        header { background: #3b82f6; color: white; padding: 20px; text-align: center; position: relative; }
+        .container { max-width: 450px; margin: 0 auto; padding: 15px; }
         
-        /* Photo Upload Area */
-        .photo-picker { display: flex; flex-direction: column; align-items: center; justify-content: center; background: #eff6ff; border: 2px dashed #bfdbfe; padding: 20px; border-radius: 12px; margin-bottom: 15px; cursor: pointer; text-align: center; }
-        #imagePreview { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; display: none; margin-bottom: 10px; border: 4px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .card { background: var(--white); padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
         
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        input, textarea, select { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 1rem; box-sizing: border-box; }
-        textarea, .full { grid-column: span 2; }
+        /* Original Photo Selection Layout */
+        .photo-area { border: 2px dashed #cbd5e1; border-radius: 15px; padding: 20px; text-align: center; margin-bottom: 15px; background: #f0f7ff; cursor: pointer; }
+        #imgPrev { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; display: none; margin: 0 auto 10px; border: 3px solid var(--blue); }
         
-        .btn { padding: 15px; border-radius: 8px; font-weight: 700; cursor: pointer; border: none; width: 100%; margin-top: 10px; }
-        .btn-primary { background: var(--blue); color: white; }
-        .btn-primary:disabled { background: #94a3b8; cursor: not-allowed; }
+        .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        input, textarea, select { width: 100%; padding: 14px; border: 1px solid #e2e8f0; border-radius: 10px; font-size: 15px; box-sizing: border-box; }
+        .full { grid-column: span 2; }
+        
+        .btn-save { background: var(--blue); color: white; padding: 16px; border-radius: 12px; border: none; width: 100%; font-weight: 700; font-size: 16px; margin-top: 15px; cursor: pointer; }
+        .btn-save:disabled { background: #94a3b8; }
 
-        .student-item { display: flex; align-items: center; gap: 15px; padding: 15px; border-bottom: 1px solid #f1f5f9; background: white; border-radius: 8px; margin-bottom: 8px; }
-        .stu-photo-list { width: 55px; height: 55px; border-radius: 50%; object-fit: cover; background: #eee; }
+        /* School Record Display (Matches your screenshot) */
+        .record-card { background: white; padding: 20px; border-radius: 20px; margin-top: 10px; position: relative; }
+        .student-row { display: flex; align-items: flex-start; gap: 15px; padding: 15px 0; border-bottom: 1px solid #f1f5f9; }
+        .profile-img { width: 60px; height: 60px; border-radius: 50%; background: #2563eb; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 20px; object-fit: cover; }
         
-        .footer { text-align: center; padding: 30px; color: #64748b; font-size: 0.9rem; }
+        .lin-tag { background: #dbeafe; color: #2563eb; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; display: inline-block; margin-bottom: 5px; }
+        .name-txt { font-size: 18px; font-weight: 700; color: #1e3a8a; margin: 0; }
+        .info-txt { font-size: 13px; color: #475569; margin: 4px 0; }
+
+        .footer { text-align: center; padding: 20px; color: #64748b; font-size: 13px; }
     </style>
 </head>
 <body>
 
 <header>
-    <h1 style="margin:0; font-size: 1.4rem;">PROGRESSIVE MOTHER’S SCHOOL</h1>
+    <h2 style="margin:0; font-size: 1.2rem;">WELCOME TO EUDES CHAT</h2>
 </header>
 
 <div class="container">
     <div class="card">
-        <h2 id="formTitle" style="margin-top:0; color:var(--dark-blue); font-size: 1.1rem;">📝 Full Student Registration</h2>
-        <input type="hidden" id="editId">
-        
-        <div class="photo-picker" onclick="document.getElementById('stuPhotoFile').click()">
-            <img id="imagePreview" src="">
-            <span id="uploadText" style="color:var(--blue); font-weight:bold;">📷 Tap to Take Photo or Select</span>
-            <input type="file" id="stuPhotoFile" accept="image/*" style="display:none" onchange="previewImage(this)">
+        <div class="photo-area" onclick="document.getElementById('fileInp').click()">
+            <img id="imgPrev" src="">
+            <span id="txtPrompt">📸 Tap to Take Photo or Select</span>
+            <input type="file" id="fileInp" accept="image/*" style="display:none" onchange="preview(this)">
         </div>
 
-        <div class="grid">
-            <input type="text" id="stuName" placeholder="Student Name" required>
-            <input type="text" id="stuContact" placeholder="Contact Number">
-            <input type="text" id="stuClass" placeholder="Class">
-            <input type="text" id="stuAge" placeholder="Age">
-            <input type="date" id="stuDob">
-            <input type="text" id="stuLoc" placeholder="Physical Location" class="full">
-            <textarea id="stuHealth" placeholder="Health Status (Allergies, etc.)"></textarea>
-            <select id="stuStatus" class="full">
+        <div class="input-grid">
+            <input type="text" id="name" class="full" placeholder="Student Name">
+            <input type="text" id="contact" placeholder="Contact Number">
+            <input type="text" id="class" placeholder="Class">
+            <input type="text" id="age" placeholder="Age">
+            <input type="date" id="dob">
+            <input type="text" id="loc" class="full" placeholder="Physical Location">
+            <textarea id="health" class="full" placeholder="Health Status (Allergies, etc.)"></textarea>
+            <select id="status" class="full">
                 <option value="Active">Active Student</option>
                 <option value="Left">Left School</option>
             </select>
         </div>
-        <button class="btn btn-primary" id="saveBtn" onclick="handleSave()">Save Student Record</button>
+        
+        <input type="hidden" id="editId">
+        <button class="btn-save" id="saveBtn" onclick="handleSave()">Save Student Record</button>
+        <button id="cancelBtn" onclick="reset()" style="display:none; width:100%; background:none; border:none; color:gray; margin-top:10px;">Cancel</button>
     </div>
 
-    <div id="studentList">Loading Records...</div>
+    <div class="record-card">
+        <h3 style="margin-top:0; color:#1e3a8a;">📋 School Records</h3>
+        <div id="list">Loading...</div>
+    </div>
 </div>
 
 <div class="footer">
@@ -77,128 +86,135 @@
     const SB_KEY = "sb_publishable_1PetUo8klWCLfupRq52CVg_Y_YYrzcO";
     const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
 
-    let allStudents = [];
-
-    function previewImage(input) {
+    function preview(input) {
         if (input.files && input.files[0]) {
             const reader = new FileReader();
-            reader.onload = function(e) {
-                document.getElementById('imagePreview').src = e.target.result;
-                document.getElementById('imagePreview').style.display = 'block';
-                document.getElementById('uploadText').innerText = "✅ Photo Attached";
-            }
+            reader.onload = e => {
+                document.getElementById('imgPrev').src = e.target.result;
+                document.getElementById('imgPrev').style.display = 'block';
+                document.getElementById('txtPrompt').style.display = 'none';
+            };
             reader.readAsDataURL(input.files[0]);
         }
     }
 
     async function handleSave() {
+        const nameVal = document.getElementById('name').value.trim();
+        const file = document.getElementById('fileInp').files[0];
+        const btn = document.getElementById('saveBtn');
         const id = document.getElementById('editId').value;
-        const name = document.getElementById('stuName').value.trim();
-        const photoFile = document.getElementById('stuPhotoFile').files[0];
-        const saveBtn = document.getElementById('saveBtn');
 
-        if (!name) return alert("Please enter the student's name");
+        if (!nameVal) return alert("Full Name is required");
 
-        saveBtn.disabled = true;
-        saveBtn.innerText = "Saving... Please wait";
+        btn.disabled = true;
+        btn.innerText = "Uploading...";
 
-        let photoUrl = "";
-        
-        // 1. UPLOAD PHOTO FIRST
-        if (photoFile) {
-            const fileName = `photo_${Date.now()}_${name.replace(/\s/g, '_')}`;
-            const { data: upData, error: upErr } = await supabaseClient.storage.from('student-photos').upload(fileName, photoFile);
-            
-            if (upErr) {
-                console.error("Photo Error:", upErr);
-            } else {
+        let uploadedUrl = "";
+        if (file) {
+            const fileName = `${Date.now()}_student.jpg`;
+            const { data: storageData, error: storageErr } = await supabaseClient.storage
+                .from('student-photos')
+                .upload(fileName, file);
+
+            if (!storageErr) {
                 const { data } = supabaseClient.storage.from('student-photos').getPublicUrl(fileName);
-                photoUrl = data.publicUrl;
+                uploadedUrl = data.publicUrl;
             }
         }
 
-        // 2. PREPARE DATA
-        const studentData = {
-            name: name,
-            contact: document.getElementById('stuContact').value,
-            class: document.getElementById('stuClass').value,
-            age: document.getElementById('stuAge').value,
-            dob: document.getElementById('stuDob').value,
-            location: document.getElementById('stuLoc').value,
-            health_status: document.getElementById('stuHealth').value,
-            status: document.getElementById('stuStatus').value
+        const student = {
+            name: nameVal,
+            contact: document.getElementById('contact').value,
+            class: document.getElementById('class').value,
+            age: document.getElementById('age').value,
+            dob: document.getElementById('dob').value,
+            location: document.getElementById('loc').value,
+            health_status: document.getElementById('health').value,
+            status: document.getElementById('status').value
         };
 
-        if (photoUrl) studentData.photo_url = photoUrl;
+        if (uploadedUrl) student.photo_url = uploadedUrl;
 
-        // 3. SAVE TO DATABASE
-        let finalResponse;
+        let res;
         if (id) {
-            finalResponse = await supabaseClient.from('students').update(studentData).eq('id', id);
+            res = await supabaseClient.from('students').update(student).eq('id', id);
         } else {
-            studentData.lin = name.charAt(0).toUpperCase() + "-PMS-" + Math.floor(1000 + Math.random() * 9000);
-            finalResponse = await supabaseClient.from('students').insert([studentData]);
+            student.lin = "PMS-" + Math.floor(1000 + Math.random() * 9000);
+            res = await supabaseClient.from('students').insert([student]);
         }
 
-        if (finalResponse.error) {
-            alert("Database Error: " + finalResponse.error.message);
+        if (res.error) {
+            alert("Error: " + res.error.message);
         } else {
-            resetForm();
-            loadRecords();
+            reset();
+            load();
         }
-
-        saveBtn.disabled = false;
-        saveBtn.innerText = "Save Student Record";
+        btn.disabled = false;
+        btn.innerText = "Save Student Record";
     }
 
-    async function loadRecords() {
+    async function load() {
         const { data } = await supabaseClient.from('students').select('*').order('created_at', { ascending: false });
-        allStudents = data || [];
-        display(allStudents);
-    }
-
-    function display(data) {
-        const listDiv = document.getElementById('studentList');
+        const listDiv = document.getElementById('list');
         listDiv.innerHTML = "";
-        data.forEach(s => {
-            const avatar = `https://ui-avatars.com/api/?name=${s.name}&background=2563eb&color=fff`;
+
+        (data || []).forEach(s => {
+            const initials = s.name.substring(0,2).toUpperCase();
+            const photoHtml = s.photo_url 
+                ? `<img src="${s.photo_url}" class="profile-img">` 
+                : `<div class="profile-img">${initials}</div>`;
+
             listDiv.innerHTML += `
-                <div class="student-item">
-                    <img src="${s.photo_url || avatar}" class="stu-photo-list">
+                <div class="student-row">
+                    ${photoHtml}
                     <div style="flex:1;">
-                        <b style="display:block; color:var(--dark-blue);">${s.name}</b>
-                        <small>${s.lin} | ${s.class}</small>
+                        <span class="lin-tag">${s.lin}</span>
+                        <p class="name-txt">${s.name}</p>
+                        <p class="info-txt"><b>Class:</b> ${s.class} | <b>Location:</b> ${s.location}</p>
+                        <p class="info-txt"><b>Contact:</b> ${s.contact} | <b>Health:</b> ${s.health_status}</p>
+                        <div style="margin-top:8px;">
+                            <button onclick="edit('${s.id}')" style="background:#fbbf24; border:none; padding:5px 12px; border-radius:6px; color:white; font-size:12px; font-weight:bold;">Edit</button>
+                            <button onclick="del('${s.id}')" style="background:#ef4444; border:none; padding:5px 12px; border-radius:6px; color:white; font-size:12px; font-weight:bold; margin-left:5px;">Delete</button>
+                        </div>
                     </div>
-                    <button onclick="editRecord('${s.id}')" style="border:none; background:#f59e0b; color:white; padding:5px 10px; border-radius:4px;">Edit</button>
                 </div>`;
         });
     }
 
-    function editRecord(id) {
-        const s = allStudents.find(x => x.id == id);
-        document.getElementById('editId').value = s.id;
-        document.getElementById('stuName').value = s.name;
-        document.getElementById('stuContact').value = s.contact;
-        document.getElementById('stuClass').value = s.class;
-        document.getElementById('stuAge').value = s.age;
-        document.getElementById('stuDob').value = s.dob;
-        document.getElementById('stuLoc').value = s.location;
-        document.getElementById('stuHealth').value = s.health_status;
-        document.getElementById('stuStatus').value = s.status || 'Active';
-        document.getElementById('formTitle').innerText = "✏️ Editing " + s.name;
-        window.scrollTo(0,0);
+    function edit(id) {
+        supabaseClient.from('students').select('*').eq('id', id).single().then(({data: s}) => {
+            document.getElementById('editId').value = s.id;
+            document.getElementById('name').value = s.name;
+            document.getElementById('contact').value = s.contact;
+            document.getElementById('class').value = s.class;
+            document.getElementById('age').value = s.age;
+            document.getElementById('loc').value = s.location;
+            document.getElementById('health').value = s.health_status;
+            document.getElementById('status').value = s.status || "Active";
+            document.getElementById('saveBtn').innerText = "Update Record";
+            document.getElementById('cancelBtn').style.display = "block";
+            window.scrollTo(0,0);
+        });
     }
 
-    function resetForm() {
+    async function del(id) {
+        if(confirm("Delete record?")) {
+            await supabaseClient.from('students').delete().eq('id', id);
+            load();
+        }
+    }
+
+    function reset() {
         document.getElementById('editId').value = "";
-        document.getElementById('stuName').value = "";
-        document.getElementById('stuPhotoFile').value = "";
-        document.getElementById('imagePreview').style.display = 'none';
-        document.getElementById('uploadText').innerText = "📷 Tap to Take Photo or Select";
-        document.getElementById('formTitle').innerText = "📝 Full Student Registration";
+        document.getElementById('name').value = "";
+        document.getElementById('fileInp').value = "";
+        document.getElementById('imgPrev').style.display = "none";
+        document.getElementById('txtPrompt').style.display = "block";
+        document.getElementById('saveBtn').innerText = "Save Student Record";
+        document.getElementById('cancelBtn').style.display = "none";
     }
 
-    loadRecords();
+    load();
 </script>
 </body>
 </html>
