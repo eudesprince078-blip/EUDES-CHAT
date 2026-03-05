@@ -3,104 +3,108 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Progressive Mothers | Registry</title>
+    <title>Progressive Mothers | Eudes Media Diamond</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
-        :root { --purple: #4c1d95; --gold: #b45309; --white: #ffffff; }
-        body { font-family: 'Inter', sans-serif; margin: 0; padding-bottom: 120px; background: #f8fafc; }
-        header { background: white; padding: 25px; text-align: center; border-bottom: 5px solid var(--purple); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .motto { color: var(--gold); font-style: italic; font-size: 14px; margin-top: 5px; font-weight: bold; }
-        .container { max-width: 480px; margin: 0 auto; padding: 15px; }
-
-        #adminArea, #logoutBtn { display: none; }
-        .card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        input, select, textarea { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #cbd5e1; box-sizing: border-box; }
-        .btn-purple { background: var(--purple); color: white; border: none; width: 100%; padding: 15px; border-radius: 12px; font-weight: 900; cursor: pointer; }
-
-        /* Student Row Fix */
-        .s-card { background: white; padding: 18px; border-radius: 20px; margin-bottom: 15px; border-left: 8px solid var(--purple); display: flex; flex-direction: column; gap: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
-        .s-header { display: flex; align-items: center; gap: 15px; }
-        .s-img { width: 70px; height: 70px; border-radius: 15px; object-fit: cover; border: 2px solid #ddd; }
-        .s-info { flex: 1; }
-        .s-info b { font-size: 18px; color: var(--purple); display: block; }
+        :root { --pms-purple: #4c1d95; --pms-blue: #0ea5e9; --pms-gold: #b45309; }
+        body { font-family: 'Inter', sans-serif; margin: 0; background: #fdf2f8; padding-bottom: 100px; }
         
-        .s-details { font-size: 13px; color: #475569; background: #f1f5f9; padding: 10px; border-radius: 10px; margin-top: 5px; line-height: 1.6; }
+        header { background: var(--pms-blue); color: white; padding: 20px; text-align: center; border-radius: 0 0 30px 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 100; }
+        .motto { color: white; font-style: italic; font-size: 13px; opacity: 0.9; margin-top: 4px; font-weight: bold; }
         
-        .tool-bar { display: flex; gap: 15px; margin-top: 10px; border-top: 1px solid #eee; padding-top: 10px; }
-        .btn-tool { font-size: 12px; font-weight: 900; cursor: pointer; border: none; background: none; padding: 5px 0; }
-        .edit-link { color: #2563eb; }
-        .del-link { color: #dc2626; }
-        .id-link { color: var(--gold); }
+        .container { max-width: 450px; margin: 0 auto; padding: 15px; }
+
+        #adminForm, #logoutBtn { display: none; }
+        .card { background: white; padding: 20px; border-radius: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); margin-bottom: 20px; border: 1px solid #fbcfe8; }
+        input, select, textarea { width: 100%; padding: 14px; margin-bottom: 12px; border-radius: 12px; border: 1px solid #e2e8f0; box-sizing: border-box; font-size: 14px; }
+        .btn-save { background: #ec4899; color: white; border: none; width: 100%; padding: 16px; border-radius: 15px; font-weight: 900; cursor: pointer; font-size: 16px; }
+
+        /* LISTING STYLE */
+        .student-box { background: white; padding: 18px; border-radius: 22px; margin-bottom: 15px; border-left: 10px solid var(--pms-purple); position: relative; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
+        .st-top { display: flex; align-items: center; gap: 15px; margin-bottom: 12px; }
+        .st-photo { width: 75px; height: 75px; border-radius: 18px; object-fit: cover; border: 3px solid #f0f9ff; background: #eee; cursor: pointer; }
+        .st-main-info b { font-size: 19px; color: var(--pms-purple); display: block; }
+        .st-main-info span { font-size: 12px; color: var(--pms-blue); font-weight: bold; }
+
+        .st-details-grid { background: #f8fafc; padding: 12px; border-radius: 15px; font-size: 13px; color: #475569; display: grid; grid-template-columns: 1fr; gap: 4px; }
         
-        .call-btn { background: #22c55e; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none; position: absolute; right: 30px; }
+        .st-actions { display: flex; gap: 20px; margin-top: 15px; padding-top: 10px; border-top: 1px dashed #e2e8f0; }
+        .btn-edit { color: #2563eb; font-weight: 800; border: none; background: none; font-size: 12px; cursor: pointer; padding: 5px; }
+        .btn-del { color: #dc2626; font-weight: 800; border: none; background: none; font-size: 12px; cursor: pointer; padding: 5px; }
+        .btn-id-view { color: var(--pms-gold); font-weight: 800; border: none; background: none; font-size: 12px; cursor: pointer; padding: 5px; }
 
-        #idModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 9999; align-items: center; justify-content: center; flex-direction: column; }
-        .id-card { width: 320px; background: white; border-radius: 20px; overflow: hidden; text-align: center; }
-        .id-head { background: var(--purple); color: white; padding: 15px; }
+        .call-float { background: #22c55e; color: white; width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none; position: absolute; right: 20px; top: 20px; box-shadow: 0 4px 10px rgba(34,197,94,0.4); }
 
-        .footer { text-align: center; padding: 30px; font-size: 11px; color: #94a3b8; font-weight: bold; }
+        /* ID MODAL */
+        #idModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; align-items: center; justify-content: center; flex-direction: column; }
+        .id-card { width: 330px; background: white; border-radius: 25px; overflow: hidden; text-align: center; }
+        .id-banner { background: var(--pms-purple); color: white; padding: 18px; }
+
+        .footer { text-align: center; padding: 40px 20px; font-size: 11px; color: #94a3b8; font-weight: bold; line-height: 1.8; }
     </style>
 </head>
 <body>
 
 <header>
-    <div style="font-weight: 900; color: var(--purple); font-size: 1.4rem;">PROGRESSIVE MOTHERS</div>
+    <div style="font-weight: 900; letter-spacing: 1px; font-size: 1.2rem;">PROGRESSIVE MOTHERS</div>
     <div class="motto">"With God everything is possible"</div>
-    <button id="logoutBtn" onclick="logout()" style="margin-top:10px; border:none; background:#fee2e2; color:#b91c1c; padding:8px 20px; border-radius:10px; font-weight:bold; cursor:pointer;">🚪 LOGOUT</button>
+    <button id="logoutBtn" onclick="logout()" style="margin-top:10px; background:white; color:red; border:none; padding:5px 15px; border-radius:8px; font-weight:bold; cursor:pointer;">LOGOUT ADMIN</button>
 </header>
 
 <div class="container">
-    <div id="loginBox" class="card" style="text-align:center;">
-        <h4 style="color:var(--purple);">Admin Login</h4>
-        <input type="password" id="pass" placeholder="Password">
-        <button class="btn-purple" onclick="login()">LOGIN</button>
+    <div id="loginPanel" class="card" style="text-align:center;">
+        <h3 style="color:var(--pms-purple); margin-top:0;">Secure Admin Access</h3>
+        <input type="password" id="adminPass" placeholder="Enter System Password">
+        <button class="btn-save" onclick="checkLogin()">UNLOCK DASHBOARD</button>
     </div>
 
-    <div id="adminArea" class="card">
-        <h3 id="formTitle" style="color:var(--purple); margin-top:0;">Register Student</h3>
-        <input type="file" id="fImg">
-        <input type="text" id="fName" placeholder="Full Student Name">
-        <input type="text" id="fPhone" placeholder="Parent Contact">
+    <div id="adminForm" class="card">
+        <h3 id="formTitle" style="color:var(--pms-purple); margin:0 0 15px;">Add New Student</h3>
+        <input type="file" id="inpPhoto" accept="image/*">
+        <input type="text" id="inpName" placeholder="Full Student Name">
+        <input type="text" id="inpContact" placeholder="Parent Contact Number">
         <div style="display:flex; gap:10px;">
-            <input type="date" id="fDOB" onchange="autoAge()">
-            <input type="text" id="fAge" placeholder="Age" readonly style="background:#f1f5f9;">
+            <input type="date" id="inpDOB" onchange="generateAge()">
+            <input type="text" id="inpAge" placeholder="Age (Auto)" readonly style="background:#f1f5f9;">
         </div>
-        <select id="fClass">
-            <option>Baby</option><option>Middle</option><option>Top</option>
-            <option>P.1</option><option>P.2</option><option>P.3</option><option>P.4</option>
-            <option>P.5</option><option>P.6</option><option>P.7</option>
+        <select id="inpClass">
+            <option value="Baby">Baby</option><option value="Middle">Middle</option><option value="Top">Top</option>
+            <option value="P.1">P.1</option><option value="P.2">P.2</option><option value="P.3">P.3</option>
+            <option value="P.4">P.4</option><option value="P.5">P.5</option><option value="P.6">P.6</option><option value="P.7">P.7</option>
         </select>
-        <input type="text" id="fLoc" placeholder="Physical Address">
-        <textarea id="fHealth" placeholder="Health Status/Allergies"></textarea>
-        <button class="btn-purple" id="saveBtn" onclick="save()">SAVE RECORD</button>
+        <input type="text" id="inpLoc" placeholder="Physical Address (Home/Village)">
+        <textarea id="inpHealth" placeholder="Health Conditions / Allergies"></textarea>
+        <button class="btn-save" id="saveButton" onclick="submitData()">SAVE ACADEMIC RECORD</button>
     </div>
 
-    <input type="text" id="search" placeholder="🔍 Search Name or Class..." onkeyup="filter()" style="width:100%; box-sizing:border-box; padding:15px; border-radius:15px; border:2px solid var(--purple); margin:20px 0;">
+    <input type="text" id="searchBar" placeholder="🔍 Search name, class or address..." onkeyup="searchFilter()" style="padding:18px; border-radius:18px; border:2px solid var(--pms-blue); font-weight:bold; margin-bottom:20px;">
 
-    <div id="studentList">Loading...</div>
+    <div id="displayList">Connecting to Server...</div>
 </div>
 
 <div id="idModal" onclick="this.style.display='none'">
-    <div class="id-card" id="idArea" onclick="event.stopPropagation()">
-        <div class="id-head">
-            <h3 style="margin:0;">PROGRESSIVE MOTHERS</h3>
-            <small>With God everything is possible</small>
+    <div class="id-card" id="captureCard" onclick="event.stopPropagation()">
+        <div class="id-banner">
+            <h3 style="margin:0; font-size:16px;">PROGRESSIVE MOTHERS</h3>
+            <small style="font-size:8px;">With God everything is possible</small>
         </div>
-        <div style="height:50px;"></div>
-        <div style="padding:20px;">
-            <img id="idP" src="" style="width:100px; height:100px; border-radius:50%; border:5px solid var(--purple); margin-top:-70px; background:white; object-fit:cover;">
-            <h2 id="idN" style="color:var(--purple); margin:10px 0 5px;">Name</h2>
-            <b id="idL" style="color:var(--gold);">LIN: PM-0000</b>
-            <div style="text-align:left; font-size:11px; margin-top:15px; border-top:1px solid #eee; padding-top:10px;">
-                <b>CLASS:</b> <span id="idC"></span> | <b>AGE:</b> <span id="idA"></span><br>
-                <b>HEALTH:</b> <span id="idH"></span><br>
-                <b>PARENT:</b> <span id="idPh"></span>
+        <div style="height:60px;"></div>
+        <div style="padding:25px;">
+            <img id="idViewPhoto" src="" style="width:110px; height:110px; border-radius:50%; border:5px solid var(--pms-purple); margin-top:-80px; background:white; object-fit:cover;">
+            <h2 id="idViewName" style="color:var(--pms-purple); margin:15px 0 5px;">Student Name</h2>
+            <b id="idViewLin" style="color:var(--pms-gold); letter-spacing:1px;">LIN: PM-0000</b>
+            <div style="text-align:left; font-size:11px; margin-top:15px; border-top:1px solid #eee; padding-top:10px; line-height:1.7;">
+                <b>CLASS:</b> <span id="idViewClass"></span> | <b>AGE:</b> <span id="idViewAge"></span><br>
+                <b>HEALTH:</b> <span id="idViewHealth"></span><br>
+                <b>CONTACT:</b> <span id="idViewContact"></span>
             </div>
-            <div style="margin-top:15px; font-size:8px; color:#94a3b8; border-top:1px dashed #ddd; padding-top:10px;">Eudes Media • +256762992440</div>
+            <div style="margin-top:20px; font-size:8px; color:#94a3b8; border-top:1px dashed #ddd; padding-top:10px;">
+                Designed by Eudes Media • +256762992440 [cite: 2026-01-28]
+            </div>
         </div>
     </div>
-    <button class="btn-purple" onclick="download()" style="width:200px; margin-top:20px; background:#16a34a;">DOWNLOAD PDF</button>
+    <button class="btn-save" onclick="downloadID()" style="width:220px; margin-top:20px; background:#16a34a;">⬇️ DOWNLOAD PDF ID</button>
 </div>
 
 <div class="footer">
@@ -113,121 +117,120 @@
     const SB_KEY = "sb_publishable_1PetUo8klWCLfupRq52CVg_Y_YYrzcO";
     const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
     
-    let cache = []; let isAuth = false; let editId = null;
+    let studentDB = []; let isAuthorized = false; let editingID = null;
 
-    if(localStorage.getItem('admin_session') === 'true') { login(true); }
+    if(localStorage.getItem('pms_logged') === 'true') { checkLogin(true); }
 
-    function login(reload = false) {
-        if(reload || document.getElementById('pass').value === "mothers.comit1") {
-            isAuth = true; localStorage.setItem('admin_session', 'true');
-            document.getElementById('loginBox').style.display = 'none';
-            document.getElementById('adminArea').style.display = 'block';
+    function checkLogin(isAutomatic = false) {
+        if(isAutomatic || document.getElementById('adminPass').value === "mothers.comit1") {
+            isAuthorized = true; localStorage.setItem('pms_logged', 'true');
+            document.getElementById('loginPanel').style.display = 'none';
+            document.getElementById('adminForm').style.display = 'block';
             document.getElementById('logoutBtn').style.display = 'inline-block';
-            fetch();
-        } else { alert("Wrong Password"); }
+            fetchRecords();
+        } else { alert("Unauthorized Access."); }
     }
 
     function logout() { localStorage.clear(); location.reload(); }
 
-    function autoAge() {
-        const dob = new Date(document.getElementById('fDOB').value);
-        document.getElementById('fAge').value = new Date().getFullYear() - dob.getFullYear() + " Years";
+    function generateAge() {
+        const birthDate = new Date(document.getElementById('inpDOB').value);
+        document.getElementById('inpAge').value = (new Date().getFullYear() - birthDate.getFullYear()) + " Years";
     }
 
-    async function fetch() {
+    async function fetchRecords() {
         const { data } = await supabaseClient.from('students').select('*').order('name');
-        cache = data || []; render(cache);
+        studentDB = data || []; populate(studentDB);
     }
 
-    function render(list) {
-        const container = document.getElementById('studentList');
-        container.innerHTML = "";
+    function populate(list) {
+        const box = document.getElementById('displayList'); box.innerHTML = "";
         list.forEach(s => {
-            container.innerHTML += `
-                <div class="s-card">
-                    <div class="s-header">
-                        <img src="${s.photo_url || 'https://via.placeholder.com/80'}" class="s-img">
-                        <div class="s-info">
+            box.innerHTML += `
+                <div class="student-box">
+                    <div class="st-top">
+                        <img src="${s.photo_url || 'https://via.placeholder.com/80'}" class="st-photo" onclick="popID('${s.id}')">
+                        <div class="st-main-info">
                             <b>${s.name}</b>
-                            <small>${s.class} | ${s.lin}</small>
+                            <span>${s.class} | ${s.lin}</span>
                         </div>
-                        <a href="tel:${s.contact}" class="call-btn">📞</a>
                     </div>
-                    <div class="s-details">
-                        📍 <b>Location:</b> ${s.location}<br>
-                        📞 <b>Parent:</b> ${s.contact}<br>
-                        🎂 <b>Age:</b> ${s.age}<br>
-                        🏥 <b>Health:</b> ${s.health_status || 'Excellent'}
+                    <div class="st-details-grid">
+                        <span>📞 <b>Parent:</b> ${s.contact}</span>
+                        <span>📍 <b>Location:</b> ${s.location}</span>
+                        <span>🎂 <b>Age:</b> ${s.age}</span>
+                        <span style="color:#dc2626;">🏥 <b>Health:</b> ${s.health_status || 'Excellent'}</span>
                     </div>
-                    <div class="tool-bar">
-                        <button class="btn-tool edit-link" onclick="startEdit('${s.id}')">✏️ EDIT DATA</button>
-                        <button class="btn-tool del-link" onclick="deleteRec('${s.id}')">🗑️ DELETE</button>
-                        <button class="btn-tool id-link" onclick="viewID('${s.id}')">🪪 VIEW ID</button>
+                    <div class="st-actions">
+                        <button class="btn-edit" onclick="runEdit('${s.id}')">✏️ EDIT DATA</button>
+                        <button class="btn-del" onclick="runDelete('${s.id}')">🗑️ REMOVE</button>
+                        <button class="btn-id-view" onclick="popID('${s.id}')">🪪 VIEW ID</button>
                     </div>
+                    <a href="tel:${s.contact}" class="call-float">📞</a>
                 </div>`;
         });
     }
 
-    function startEdit(id) {
-        const s = cache.find(x => x.id === id);
-        editId = id;
+    function runEdit(id) {
+        const s = studentDB.find(x => x.id === id);
+        editingID = id;
         document.getElementById('formTitle').innerText = "Updating: " + s.name;
-        document.getElementById('fName').value = s.name;
-        document.getElementById('fPhone').value = s.contact;
-        document.getElementById('fDOB').value = s.dob;
-        document.getElementById('fAge').value = s.age;
-        document.getElementById('fClass').value = s.class;
-        document.getElementById('fLoc').value = s.location;
-        document.getElementById('fHealth').value = s.health_status;
-        document.getElementById('saveBtn').innerText = "CONFIRM UPDATES";
+        document.getElementById('inpName').value = s.name;
+        document.getElementById('inpContact').value = s.contact;
+        document.getElementById('inpDOB').value = s.dob;
+        document.getElementById('inpAge').value = s.age;
+        document.getElementById('inpClass').value = s.class;
+        document.getElementById('inpLoc').value = s.location;
+        document.getElementById('inpHealth').value = s.health_status;
+        document.getElementById('saveButton').innerText = "CONFIRM EDIT & UPDATE";
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    async function save() {
-        const file = document.getElementById('fImg').files[0];
-        let url = "";
+    async function submitData() {
+        const file = document.getElementById('inpPhoto').files[0];
+        let pUrl = "";
         if(file) {
-            const fname = `st_${Date.now()}`;
-            const { data, error } = await supabaseClient.storage.from('students photos').upload(fname, file);
-            if(!error) url = `${SB_URL}/storage/v1/object/public/students%20photos/${fname}`;
+            const fileName = `st_${Date.now()}`;
+            const { data, error } = await supabaseClient.storage.from('students photos').upload(fileName, file);
+            if(!error) pUrl = `${SB_URL}/storage/v1/object/public/students%20photos/${fileName}`;
         }
 
-        const data = {
-            name: document.getElementById('fName').value, contact: document.getElementById('fPhone').value,
-            dob: document.getElementById('fDOB').value, age: document.getElementById('fAge').value,
-            class: document.getElementById('fClass').value, location: document.getElementById('fLoc').value,
-            health_status: document.getElementById('fHealth').value
+        const studentObj = {
+            name: document.getElementById('inpName').value, contact: document.getElementById('inpContact').value,
+            dob: document.getElementById('inpDOB').value, age: document.getElementById('inpAge').value,
+            class: document.getElementById('inpClass').value, location: document.getElementById('inpLoc').value,
+            health_status: document.getElementById('inpHealth').value
         };
 
-        if(editId) {
-            if(url) data.photo_url = url;
-            await supabaseClient.from('students').update(data).eq('id', editId);
+        if(editingID) {
+            if(pUrl) studentObj.photo_url = pUrl;
+            await supabaseClient.from('students').update(studentObj).eq('id', editingID);
         } else {
-            data.lin = "PM-" + Math.floor(1000 + Math.random() * 9000);
-            data.photo_url = url;
-            await supabaseClient.from('students').insert([data]);
+            studentObj.lin = "PM-" + Math.floor(1000 + Math.random() * 9000);
+            studentObj.photo_url = pUrl;
+            await supabaseClient.from('students').insert([studentObj]);
         }
         location.reload();
     }
 
-    async function deleteRec(id) { if(confirm("Delete student?")) { await supabaseClient.from('students').delete().eq('id', id); location.reload(); } }
+    async function runDelete(id) { if(confirm("Permanently delete student?")) { await supabaseClient.from('students').delete().eq(id); location.reload(); } }
 
-    function viewID(id) {
-        const s = cache.find(x => x.id === id);
-        document.getElementById('idN').innerText = s.name;
-        document.getElementById('idL').innerText = "LIN: " + s.lin;
-        document.getElementById('idC').innerText = s.class;
-        document.getElementById('idA').innerText = s.age;
-        document.getElementById('idH').innerText = s.health_status || "Fit";
-        document.getElementById('idPh').innerText = s.contact;
-        document.getElementById('idP').src = s.photo_url || 'https://via.placeholder.com/150';
+    function popID(id) {
+        const s = studentDB.find(x => x.id === id);
+        document.getElementById('idViewName').innerText = s.name;
+        document.getElementById('idViewLin').innerText = "LIN: " + s.lin;
+        document.getElementById('idViewClass').innerText = s.class;
+        document.getElementById('idViewAge').innerText = s.age;
+        document.getElementById('idViewHealth').innerText = s.health_status || "Fit";
+        document.getElementById('idViewContact').innerText = s.contact;
+        document.getElementById('idViewPhoto').src = s.photo_url || 'https://via.placeholder.com/150';
         document.getElementById('idModal').style.display = 'flex';
     }
 
-    function download() { html2pdf().from(document.getElementById('idArea')).save('Student_ID.pdf'); }
-    function filter() {
-        const q = document.getElementById('search').value.toLowerCase();
-        render(cache.filter(x => x.name.toLowerCase().includes(q) || x.class.toLowerCase().includes(q)));
+    function downloadID() { html2pdf().from(document.getElementById('captureCard')).save('Progressive_ID.pdf'); }
+    function searchFilter() {
+        const q = document.getElementById('searchBar').value.toLowerCase();
+        populate(studentDB.filter(x => x.name.toLowerCase().includes(q) || x.class.toLowerCase().includes(q) || x.location.toLowerCase().includes(q)));
     }
 </script>
 </body>
