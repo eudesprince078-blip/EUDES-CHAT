@@ -28,29 +28,29 @@
 <header>
     <div style="width:40px"></div>
     <span style="font-weight: 900; letter-spacing: 1px;">SCHOOL DATA</span>
-    <div onclick="promptAdmin()" style="cursor:pointer; font-size:24px; padding: 5px 15px;">⚙️</div>
+    <div onclick="promptAdmin()" style="cursor:pointer; font-size:22px; padding-right:10px; color: white;">⚙️</div>
 </header>
 
 <div class="hero">
     <h2 style="margin:0; font-size: 1.5rem;">PROGRESSIVE MOTHERS</h2>
     <div style="font-style:italic; font-size:12px; opacity:0.9;">"With God everything is possible"</div>
-    <button id="logoutBtn" onclick="logout()" style="display:none; margin-top:12px; background:white; color:var(--pms-blue); border:none; padding:6px 18px; border-radius:10px; font-weight:bold; cursor:pointer;">LOGOUT ADMIN</button>
+    <button id="logoutBtn" onclick="logout()" style="display:none; margin-top:10px; background:white; color:var(--pms-blue); border:none; padding:5px 15px; border-radius:8px; font-weight:bold; cursor:pointer;">LOGOUT ADMIN</button>
 </div>
 
 <div class="container">
     <div id="adminArea" class="card">
-        <h3 id="formTitle" style="margin-top:0; color:var(--pms-blue)">Register Student</h3>
+        <h3 id="formTitle" style="margin-top:0; color:var(--pms-blue)">New Entry</h3>
         <input type="text" id="fName" placeholder="Full Student Name">
-        <input type="text" id="fPhone" placeholder="Parent Contact Number">
-        <input type="text" id="fLoc" placeholder="Location/Stay">
+        <input type="text" id="fPhone" placeholder="Contact Number">
+        <input type="text" id="fLoc" placeholder="Physical Location">
         <select id="fClass">
             <option>Baby Class</option><option>Middle Class</option><option>Top Class</option>
             <option>P.1</option><option>P.2</option><option>P.3</option><option>P.4</option>
             <option>P.5</option><option>P.6</option><option>P.7</option>
         </select>
         
-        <div style="background: #f1f5f9; padding: 15px; border-radius: 15px; margin-bottom: 12px;">
-            <label style="font-size: 11px; font-weight: bold;">PAYMENT DETAILS</label>
+        <div style="background: #f8fafc; padding: 15px; border-radius: 15px; margin-bottom: 12px; border: 1px dashed #cbd5e1;">
+            <label style="font-size: 11px; font-weight: bold; color: var(--pms-blue);">PAYMENT DETAILS</label>
             <input type="text" id="fPayCode" placeholder="Enter Payment/Receipt Code" style="margin-top:8px;">
             <input type="text" id="fAmt" placeholder="Balance Due (e.g. 10,000)">
         </div>
@@ -73,9 +73,8 @@
 </div>
 
 <script>
+    // USE YOUR ACTUAL URL AND KEY HERE
     const SB_URL = "https://kjftrwuucjdnhfwesrup.supabase.co"; 
-    // I replaced the short key with the one that was working before.
-    // If you get 'Invalid API Key', you MUST copy the 'anon' key from Supabase.
     const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtqZnRyd3V1Y2pkbmhmd2VzcnVwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDk2NjY0MDAsImV4cCI6MjA1MTI0MjQwMH0.m1PetUo8klWCLfupRq52CVg_Y_YYrzcO"; 
 
     const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
@@ -84,7 +83,7 @@
     let editID = null;
     let isAdmin = false;
 
-    if(localStorage.getItem('pms_login') === 'active') { unlockAdmin(); }
+    if(localStorage.getItem('pms_logged') === 'yes') { unlockAdmin(); }
     loadData();
 
     async function loadData() {
@@ -101,33 +100,33 @@
 
     function unlockAdmin() {
         isAdmin = true;
-        localStorage.setItem('pms_login', 'active');
+        localStorage.setItem('pms_logged', 'yes');
         document.getElementById('adminArea').style.display = 'block';
         document.getElementById('logoutBtn').style.display = 'inline-block';
         display(studentDB);
     }
 
-    function logout() { localStorage.removeItem('pms_login'); location.reload(); }
+    function logout() { localStorage.removeItem('pms_logged'); location.reload(); }
 
     function display(list) {
         const box = document.getElementById('mainList');
         box.innerHTML = "";
         list.forEach(s => {
-            const showAdmin = isAdmin ? "display:flex" : "display:none";
+            const showTools = isAdmin ? "display:flex" : "display:none";
             box.innerHTML += `
                 <div class="s-box">
-                    <span style="font-size:10px; color:var(--pms-red); font-weight:bold;">LIN: ${s.lin}</span>
+                    <span style="font-size:10px; color:var(--pms-red); font-weight:bold;">ID: ${s.lin}</span>
                     <span class="s-name">${s.name}</span>
                     <div class="s-info">
-                        📍 <b>Stay:</b> ${s.location}<br>
-                        📚 <b>Class:</b> ${s.class} | 📞 <b>Contact:</b> ${s.contact}<br>
+                        📍 <b>Location:</b> ${s.location}<br>
+                        📚 <b>Class:</b> ${s.class} | 📞 <b>Parent:</b> ${s.contact}<br>
                         🏥 <b>Health:</b> ${s.health_status || 'Good'}<br>
-                        <div class="pay-badge">💳 Code: ${s.payment_code || 'N/A'}</div>
+                        <div class="pay-badge">💳 Receipt: ${s.payment_code || 'None'}</div>
                         <div style="font-size:11px; font-weight:bold; color:red; margin-top:3px;">Balance: ${s.balance || '0'}/-</div>
                     </div>
-                    <div class="s-tools" style="${showAdmin}">
+                    <div class="s-tools" style="${showTools}">
                         <span style="color:#2563eb; cursor:pointer;" onclick="triggerEdit('${s.id}')">✏️ EDIT</span>
-                        <span style="color:#dc2626; cursor:pointer;" onclick="triggerDelete('${s.id}')">🗑️ DELETE</span>
+                        <span style="color:#dc2626; cursor:pointer;" onclick="triggerDelete('${s.id}')">🗑️ REMOVE</span>
                     </div>
                 </div>`;
         });
@@ -136,6 +135,7 @@
     async function saveRecord() {
         const msg = document.getElementById('msg');
         msg.innerText = "⏳ Saving...";
+        
         const info = {
             name: document.getElementById('fName').value,
             contact: document.getElementById('fPhone').value,
@@ -153,7 +153,7 @@
             res = await supabaseClient.from('students').insert([info]); 
         }
 
-        if(res.error) { msg.innerText = "❌ DB Error: " + res.error.message; }
+        if(res.error) { msg.innerText = "Error: " + res.error.message; }
         else { location.reload(); }
     }
 
@@ -167,12 +167,12 @@
         document.getElementById('fPayCode').value = s.payment_code || "";
         document.getElementById('fAmt').value = s.balance || "";
         document.getElementById('fHealth').value = s.health_status;
-        document.getElementById('btnSave').innerText = "UPDATE STUDENT";
+        document.getElementById('btnSave').innerText = "UPDATE RECORD";
         window.scrollTo({top: 0, behavior: 'smooth'});
     }
 
     async function triggerDelete(id) {
-        if(confirm("Permanently delete student?")) {
+        if(confirm("Delete student?")) {
             await supabaseClient.from('students').delete().eq('id', id);
             location.reload();
         }
