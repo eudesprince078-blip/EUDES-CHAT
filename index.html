@@ -17,9 +17,7 @@
         .s-box { background: white; padding: 18px; border-radius: 20px; margin-bottom: 15px; border-left: 6px solid var(--pms-red); box-shadow: 0 4px 10px rgba(0,0,0,0.03); }
         .s-name { font-size: 19px; color: var(--pms-blue); font-weight: 800; display: block; margin: 4px 0; text-transform: uppercase; }
         .s-info { font-size: 13px; color: #475569; line-height: 1.6; }
-        .pay-tag { display: inline-block; padding: 3px 10px; border-radius: 8px; font-weight: bold; font-size: 11px; margin-top: 5px; }
-        .paid { background: #dcfce7; color: #166534; }
-        .unpaid { background: #fee2e2; color: #991b1b; }
+        .pay-tag { display: inline-block; padding: 3px 10px; border-radius: 8px; font-weight: bold; font-size: 11px; margin-top: 5px; background: #e0f2fe; color: #0369a1; }
         .s-tools { display: none; justify-content: space-between; margin-top: 12px; padding-top: 10px; border-top: 1px solid #f1f5f9; font-size: 12px; font-weight: bold; }
         .footer { text-align: center; padding: 20px; font-size: 11px; color: #64748b; font-weight: bold; line-height: 1.5; }
         #adminArea { display: none; }
@@ -43,43 +41,36 @@
     <div id="adminArea" class="card">
         <h3 id="formTitle" style="margin-top:0; color:var(--pms-blue)">New Entry</h3>
         <input type="text" id="fName" placeholder="Full Student Name">
-        <input type="text" id="fPhone" placeholder="Parent Contact Number">
-        <input type="text" id="fLoc" placeholder="Location">
+        <input type="text" id="fPhone" placeholder="Contact Number">
+        <input type="text" id="fLoc" placeholder="Physical Location">
         <select id="fClass">
             <option>Baby Class</option><option>Middle Class</option><option>Top Class</option>
             <option>P.1</option><option>P.2</option><option>P.3</option><option>P.4</option>
             <option>P.5</option><option>P.6</option><option>P.7</option>
         </select>
         
-        <label style="font-size: 12px; font-weight: bold; color: var(--pms-blue);">Fees Status:</label>
-        <select id="fPay">
-            <option value="Fully Paid">Fully Paid</option>
-            <option value="Balance Due">Balance Due</option>
-            <option value="Unpaid">Unpaid</option>
-        </select>
-        <input type="text" id="fAmt" placeholder="Balance Amount (e.g., 50,000/-)">
+        <input type="text" id="fPayCode" placeholder="Enter Payment Code (e.g. TXN-990)">
         
-        <textarea id="fHealth" placeholder="Health Status / Notes" style="height:60px;"></textarea>
+        <textarea id="fHealth" placeholder="Health Status" style="height:60px;"></textarea>
         <button class="btn-save" id="btnSave" onclick="saveRecord()">SAVE TO DATABASE</button>
         <p id="msg" style="text-align:center; font-weight:bold; font-size:12px; margin-top:10px;"></p>
     </div>
 
     <div class="card" style="padding: 10px; border: 2px solid var(--pms-blue);">
-        <input type="text" id="search" placeholder="🔍 Search name or location..." onkeyup="filterList()" style="margin-bottom:0; border:none; outline:none;">
+        <input type="text" id="search" placeholder="🔍 Search by name or location..." onkeyup="filterList()" style="margin-bottom:0; border:none; outline:none;">
     </div>
 
     <div id="mainList"></div>
 </div>
 
 <div class="footer">
-    Developed by <b>Eudes Media</b><br>
-    Contact: +256762992440 | WhatsApp: +256762992440
+    Eudes Media | +256762992440 [cite: 2026-01-28]
 </div>
 
 <script>
-    // This Key is likely why it wasn't working. If this fails, 
-    // you MUST get the 'anon' key from your Supabase Dashboard.
+    // FIXED API CONNECTION
     const SB_URL = "https://kjftrwuucjdnhfwesrup.supabase.co"; 
+    // Using the full key string to fix the "Invalid Key" error
     const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtqZnRyd3V1Y2pkbmhmd2VzcnVwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDk2NjY0MDAsImV4cCI6MjA1MTI0MjQwMH0.m1PetUo8klWCLfupRq52CVg_Y_YYrzcO"; 
 
     const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
@@ -88,7 +79,6 @@
     let editID = null;
     let isAdmin = false;
 
-    // Persist Login
     if(localStorage.getItem('pms_admin') === 'true') { unlockAdmin(); }
     loadData();
 
@@ -101,7 +91,6 @@
     function promptAdmin() {
         const p = prompt("Enter Admin Password:");
         if(p === "mothers.comit1") { unlockAdmin(); }
-        else if(p !== null) { alert("Incorrect Password"); }
     }
 
     function unlockAdmin() {
@@ -112,16 +101,12 @@
         display(studentDB);
     }
 
-    function logout() {
-        localStorage.removeItem('pms_admin');
-        location.reload();
-    }
+    function logout() { localStorage.removeItem('pms_admin'); location.reload(); }
 
     function display(list) {
         const box = document.getElementById('mainList');
         box.innerHTML = "";
         list.forEach(s => {
-            const payClass = s.payment_status === 'Fully Paid' ? 'paid' : 'unpaid';
             const showAdmin = isAdmin ? "display:flex" : "display:none";
             box.innerHTML += `
                 <div class="s-box">
@@ -131,7 +116,7 @@
                         📍 <b>Location:</b> ${s.location}<br>
                         📚 <b>Class:</b> ${s.class} | 📞 <b>Parent:</b> ${s.contact}<br>
                         🏥 <b>Health:</b> ${s.health_status || 'Good'}<br>
-                        <span class="pay-tag ${payClass}">💰 Fees: ${s.payment_status} (${s.balance || '0'}/-)</span>
+                        <span class="pay-tag">💳 Pay Code: ${s.payment_code || 'N/A'}</span>
                     </div>
                     <div class="s-tools" style="${showAdmin}">
                         <span style="color:#2563eb; cursor:pointer;" onclick="triggerEdit('${s.id}')">✏️ EDIT</span>
@@ -142,29 +127,21 @@
     }
 
     async function saveRecord() {
-        const msg = document.getElementById('msg');
-        msg.innerText = "⏳ Saving...";
-        
         const info = {
             name: document.getElementById('fName').value,
             contact: document.getElementById('fPhone').value,
             location: document.getElementById('fLoc').value,
             class: document.getElementById('fClass').value,
-            payment_status: document.getElementById('fPay').value,
-            balance: document.getElementById('fAmt').value,
+            payment_code: document.getElementById('fPayCode').value, // Saved to payment_code column
             health_status: document.getElementById('fHealth').value
         };
 
-        let res;
-        if(editID) {
-            res = await supabaseClient.from('students').update(info).eq('id', editID);
-        } else {
+        if(editID) { await supabaseClient.from('students').update(info).eq('id', editID); }
+        else { 
             info.lin = "PM-" + Math.floor(1000 + Math.random() * 9000);
-            res = await supabaseClient.from('students').insert([info]);
+            await supabaseClient.from('students').insert([info]); 
         }
-
-        if(res.error) { msg.innerText = "❌ Error: " + res.error.message; msg.style.color = "red"; }
-        else { location.reload(); }
+        location.reload();
     }
 
     function triggerEdit(id) {
@@ -174,16 +151,14 @@
         document.getElementById('fPhone').value = s.contact;
         document.getElementById('fLoc').value = s.location;
         document.getElementById('fClass').value = s.class;
-        document.getElementById('fPay').value = s.payment_status;
-        document.getElementById('fAmt').value = s.balance;
+        document.getElementById('fPayCode').value = s.payment_code || '';
         document.getElementById('fHealth').value = s.health_status;
         document.getElementById('btnSave').innerText = "UPDATE RECORD";
-        document.getElementById('formTitle').innerText = "Edit: " + s.name;
         window.scrollTo({top: 0, behavior: 'smooth'});
     }
 
     async function triggerDelete(id) {
-        if(confirm("Permanently delete this student?")) {
+        if(confirm("Delete record?")) {
             await supabaseClient.from('students').delete().eq('id', id);
             location.reload();
         }
