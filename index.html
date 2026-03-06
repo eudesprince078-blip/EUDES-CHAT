@@ -12,15 +12,12 @@
         .hero { background: var(--pms-blue); color: white; padding: 25px; text-align: center; border-radius: 0 0 30px 30px; margin-bottom: 20px; }
         .container { max-width: 450px; margin: 0 auto; padding: 15px; }
         .card { background: white; padding: 20px; border-radius: 25px; box-shadow: 0 8px 20px rgba(0,0,0,0.05); margin-bottom: 20px; border: 1px solid #fbcfe8; }
-        input, select, textarea { width: 100%; padding: 14px; margin-bottom: 10px; border-radius: 12px; border: 1.5px solid #e2e8f0; box-sizing: border-box; font-size: 15px; }
-        .btn-save { background: var(--pms-blue); color: white; border: none; width: 100%; padding: 16px; border-radius: 15px; font-weight: bold; cursor: pointer; text-transform: uppercase; }
+        input, select, textarea { width: 100%; padding: 14px; margin-bottom: 10px; border-radius: 12px; border: 1.5px solid #e2e8f0; font-size: 15px; box-sizing: border-box; }
+        .btn-save { background: var(--pms-blue); color: white; border: none; width: 100%; padding: 16px; border-radius: 15px; font-weight: bold; cursor: pointer; }
         .s-box { background: white; padding: 18px; border-radius: 20px; margin-bottom: 15px; border-left: 8px solid var(--pms-red); box-shadow: 0 4px 10px rgba(0,0,0,0.03); }
-        .s-name { font-size: 19px; color: var(--pms-blue); font-weight: 800; display: block; margin: 4px 0; text-transform: uppercase; }
-        .s-info { font-size: 13px; color: #475569; line-height: 1.6; }
-        .pay-badge { background: #e0f2fe; color: #0369a1; padding: 4px 10px; border-radius: 8px; font-weight: 800; font-size: 11px; display: inline-block; margin-top: 8px; border: 1px solid #bae6fd; }
-        .s-tools { display: none; justify-content: space-between; margin-top: 12px; padding-top: 10px; border-top: 1px solid #f1f5f9; font-size: 12px; font-weight: bold; }
-        .footer { text-align: center; padding: 20px; font-size: 11px; color: #64748b; font-weight: bold; line-height: 1.5; }
+        .pay-tag { background: #e0f2fe; color: #0369a1; padding: 6px 12px; border-radius: 10px; font-weight: 800; font-size: 12px; display: inline-block; margin-top: 8px; border: 1px solid #bae6fd; }
         #adminArea { display: none; }
+        .footer { text-align: center; padding: 20px; font-size: 11px; color: #64748b; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -28,20 +25,19 @@
 <header>
     <div style="width:40px"></div>
     <span style="font-weight: 900; letter-spacing: 1px;">SCHOOL DATA</span>
-    <div onclick="promptAdmin()" style="cursor:pointer; font-size:22px; padding-right:10px; color: white;">⚙️</div>
+    <div onclick="openAdmin()" style="cursor:pointer; font-size:24px; padding-right:10px;">⚙️</div>
 </header>
 
 <div class="hero">
-    <h2 style="margin:0; font-size: 1.5rem;">PROGRESSIVE MOTHERS</h2>
+    <h2 style="margin:0;">PROGRESSIVE MOTHERS</h2>
     <div style="font-style:italic; font-size:12px; opacity:0.9;">"With God everything is possible"</div>
-    <button id="logoutBtn" onclick="logout()" style="display:none; margin-top:10px; background:white; color:var(--pms-blue); border:none; padding:5px 15px; border-radius:8px; font-weight:bold; cursor:pointer;">LOGOUT ADMIN</button>
 </div>
 
 <div class="container">
     <div id="adminArea" class="card">
-        <h3 id="formTitle" style="margin-top:0; color:var(--pms-blue)">New Entry</h3>
+        <h3 style="margin-top:0; color:var(--pms-blue)">New Student Registration</h3>
         <input type="text" id="fName" placeholder="Full Student Name">
-        <input type="text" id="fPhone" placeholder="Contact Number">
+        <input type="text" id="fPhone" placeholder="Parent Contact Number">
         <input type="text" id="fLoc" placeholder="Physical Location">
         <select id="fClass">
             <option>Baby Class</option><option>Middle Class</option><option>Top Class</option>
@@ -49,19 +45,18 @@
             <option>P.5</option><option>P.6</option><option>P.7</option>
         </select>
         
-        <div style="background: #f8fafc; padding: 15px; border-radius: 15px; margin-bottom: 12px; border: 1px dashed #cbd5e1;">
+        <div style="background: #f1f5f9; padding: 15px; border-radius: 15px; margin-bottom: 12px; border: 1px dashed #475569;">
             <label style="font-size: 11px; font-weight: bold; color: var(--pms-blue);">PAYMENT DETAILS</label>
             <input type="text" id="fPayCode" placeholder="Enter Payment/Receipt Code" style="margin-top:8px;">
-            <input type="text" id="fAmt" placeholder="Balance Due (e.g. 10,000)">
         </div>
         
-        <textarea id="fHealth" placeholder="Health Status (e.g. Good)" style="height:60px;"></textarea>
-        <button class="btn-save" id="btnSave" onclick="saveRecord()">SAVE DATA</button>
+        <textarea id="fHealth" placeholder="Health Status (e.g., Good)" style="height:60px;"></textarea>
+        <button class="btn-save" onclick="saveRecord()">SAVE STUDENT DATA</button>
         <p id="msg" style="text-align:center; font-weight:bold; font-size:12px; margin-top:10px; color: red;"></p>
     </div>
 
     <div class="card" style="padding: 10px; border: 2px solid var(--pms-blue);">
-        <input type="text" id="search" placeholder="🔍 Search name or code..." onkeyup="filterList()" style="margin-bottom:0; border:none; outline:none;">
+        <input type="text" id="search" placeholder="🔍 Search name or code..." onkeyup="filterList()" style="width:100%; border:none; outline:none; margin-bottom:0;">
     </div>
 
     <div id="mainList"></div>
@@ -73,106 +68,67 @@
 </div>
 
 <script>
-    // USE YOUR ACTUAL URL AND KEY HERE
+    // YOUR UPDATED KEYS
     const SB_URL = "https://kjftrwuucjdnhfwesrup.supabase.co"; 
-    const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtqZnRyd3V1Y2pkbmhmd2VzcnVwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDk2NjY0MDAsImV4cCI6MjA1MTI0MjQwMH0.m1PetUo8klWCLfupRq52CVg_Y_YYrzcO"; 
+    const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtqZnRyd3V1Y2pkbmhmd2VzcnVwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE3Njc0OTksImV4cCI6MjA4NzM0MzQ5OX0.YAIdcBo2MXs86CrunR2CBM4Uh6RjNbGxIG-E260NfCM"; 
 
     const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
-    
     let studentDB = [];
-    let editID = null;
     let isAdmin = false;
 
-    if(localStorage.getItem('pms_logged') === 'yes') { unlockAdmin(); }
     loadData();
 
     async function loadData() {
         const { data, error } = await supabaseClient.from('students').select('*').order('name');
-        if(!error) { studentDB = data || []; display(studentDB); }
-        else { document.getElementById('msg').innerText = "Error: " + error.message; }
+        if(!error) { 
+            studentDB = data || []; 
+            display(studentDB); 
+        } else {
+            document.getElementById('msg').innerText = "Database Status: " + error.message;
+        }
     }
 
-    function promptAdmin() {
+    function openAdmin() {
         const p = prompt("Enter Admin Password:");
-        if(p === "mothers.comit1") { unlockAdmin(); }
-        else if(p !== null) { alert("Wrong Password"); }
+        if(p === "mothers.comit1") {
+            isAdmin = true;
+            document.getElementById('adminArea').style.display = 'block';
+            display(studentDB);
+        } else if (p !== null) {
+            alert("Incorrect Password");
+        }
     }
-
-    function unlockAdmin() {
-        isAdmin = true;
-        localStorage.setItem('pms_logged', 'yes');
-        document.getElementById('adminArea').style.display = 'block';
-        document.getElementById('logoutBtn').style.display = 'inline-block';
-        display(studentDB);
-    }
-
-    function logout() { localStorage.removeItem('pms_logged'); location.reload(); }
 
     function display(list) {
         const box = document.getElementById('mainList');
         box.innerHTML = "";
         list.forEach(s => {
-            const showTools = isAdmin ? "display:flex" : "display:none";
             box.innerHTML += `
                 <div class="s-box">
-                    <span style="font-size:10px; color:var(--pms-red); font-weight:bold;">ID: ${s.lin}</span>
-                    <span class="s-name">${s.name}</span>
-                    <div class="s-info">
-                        📍 <b>Location:</b> ${s.location}<br>
-                        📚 <b>Class:</b> ${s.class} | 📞 <b>Parent:</b> ${s.contact}<br>
-                        🏥 <b>Health:</b> ${s.health_status || 'Good'}<br>
-                        <div class="pay-badge">💳 Receipt: ${s.payment_code || 'None'}</div>
-                        <div style="font-size:11px; font-weight:bold; color:red; margin-top:3px;">Balance: ${s.balance || '0'}/-</div>
-                    </div>
-                    <div class="s-tools" style="${showTools}">
-                        <span style="color:#2563eb; cursor:pointer;" onclick="triggerEdit('${s.id}')">✏️ EDIT</span>
-                        <span style="color:#dc2626; cursor:pointer;" onclick="triggerDelete('${s.id}')">🗑️ REMOVE</span>
-                    </div>
+                    <span style="font-weight: 800; color: var(--pms-blue); font-size: 18px;">${s.name}</span><br>
+                    <span style="font-size: 13px; color: #64748b;">📍 ${s.location} | 📚 Class: ${s.class}</span><br>
+                    <div class="pay-tag">💳 Payment Code: ${s.payment_code || 'Not Provided'}</div>
+                    ${isAdmin ? `<div style="margin-top:10px; font-size:11px; color:blue; cursor:pointer" onclick="deleteItem('${s.id}')">🗑️ REMOVE</div>` : ''}
                 </div>`;
         });
     }
 
     async function saveRecord() {
-        const msg = document.getElementById('msg');
-        msg.innerText = "⏳ Saving...";
-        
         const info = {
             name: document.getElementById('fName').value,
             contact: document.getElementById('fPhone').value,
             location: document.getElementById('fLoc').value,
             class: document.getElementById('fClass').value,
             payment_code: document.getElementById('fPayCode').value,
-            balance: document.getElementById('fAmt').value,
-            health_status: document.getElementById('fHealth').value
+            health_status: document.getElementById('fHealth').value,
+            lin: "PM-" + Math.floor(1000 + Math.random() * 9000)
         };
-
-        let res;
-        if(editID) { res = await supabaseClient.from('students').update(info).eq('id', editID); }
-        else { 
-            info.lin = "PM-" + Math.floor(1000 + Math.random() * 9000);
-            res = await supabaseClient.from('students').insert([info]); 
-        }
-
-        if(res.error) { msg.innerText = "Error: " + res.error.message; }
-        else { location.reload(); }
+        const { error } = await supabaseClient.from('students').insert([info]);
+        if(error) alert("Error: " + error.message); else location.reload();
     }
 
-    function triggerEdit(id) {
-        const s = studentDB.find(x => x.id === id);
-        editID = id;
-        document.getElementById('fName').value = s.name;
-        document.getElementById('fPhone').value = s.contact;
-        document.getElementById('fLoc').value = s.location;
-        document.getElementById('fClass').value = s.class;
-        document.getElementById('fPayCode').value = s.payment_code || "";
-        document.getElementById('fAmt').value = s.balance || "";
-        document.getElementById('fHealth').value = s.health_status;
-        document.getElementById('btnSave').innerText = "UPDATE RECORD";
-        window.scrollTo({top: 0, behavior: 'smooth'});
-    }
-
-    async function triggerDelete(id) {
-        if(confirm("Delete student?")) {
+    async function deleteItem(id) {
+        if(confirm("Delete this student record?")) {
             await supabaseClient.from('students').delete().eq('id', id);
             location.reload();
         }
