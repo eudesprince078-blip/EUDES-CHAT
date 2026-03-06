@@ -3,30 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Progressive Mothers | Registry</title>
+    <title>Progressive Mothers | Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --pms-red: #e11d48; --pms-blue: #1e40af; --bg: #fdf2f8; }
         body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); padding-bottom: 60px; }
         header { background: var(--pms-red); color: white; padding: 12px; text-align: center; position: sticky; top: 0; z-index: 100; display: flex; justify-content: space-between; align-items: center; }
         
-        /* Dashboard Style */
-        .dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 15px; margin-top: -30px; }
-        .stat-card { background: white; padding: 15px; border-radius: 20px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.05); border-bottom: 4px solid var(--pms-red); }
-        .stat-num { display: block; font-size: 24px; font-weight: 900; color: var(--pms-blue); }
+        /* DASHBOARD SECTION */
+        .dash-container { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 15px; margin-top: -30px; }
+        .stat-card { background: white; padding: 15px; border-radius: 20px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.08); border-bottom: 4px solid var(--pms-red); }
+        .stat-num { display: block; font-size: 26px; font-weight: 900; color: var(--pms-blue); }
         .stat-label { font-size: 11px; font-weight: bold; color: #64748b; text-transform: uppercase; }
 
         .hero { background: var(--pms-blue); color: white; padding: 30px 20px 50px 20px; text-align: center; border-radius: 0 0 30px 30px; }
         .container { max-width: 450px; margin: 0 auto; padding: 10px; }
         .card { background: white; padding: 20px; border-radius: 25px; box-shadow: 0 8px 20px rgba(0,0,0,0.05); margin-bottom: 15px; }
         
-        input, select, textarea { width: 100%; padding: 14px; margin-bottom: 10px; border-radius: 12px; border: 1.5px solid #e2e8f0; font-size: 15px; box-sizing: border-box; }
-        .btn-save { background: var(--pms-blue); color: white; border: none; width: 100%; padding: 16px; border-radius: 15px; font-weight: bold; cursor: pointer; }
+        input, select { width: 100%; padding: 14px; margin-bottom: 10px; border-radius: 12px; border: 1.5px solid #e2e8f0; font-size: 15px; box-sizing: border-box; }
+        .btn-save { background: var(--pms-blue); color: white; border: none; width: 100%; padding: 16px; border-radius: 15px; font-weight: bold; cursor: pointer; text-transform: uppercase; }
         
-        .s-box { background: white; padding: 18px; border-radius: 20px; margin-bottom: 15px; border-left: 8px solid var(--pms-red); position: relative; }
-        .status-left { border-left-color: #94a3b8; opacity: 0.7; }
-        .pay-tag { background: #e0f2fe; color: #0369a1; padding: 5px 10px; border-radius: 8px; font-weight: 800; font-size: 12px; display: inline-block; margin-top: 5px; }
-        .lin-badge { position: absolute; top: 10px; right: 10px; font-size: 10px; background: #f1f5f9; padding: 2px 6px; border-radius: 5px; font-weight: bold; }
+        .s-box { background: white; padding: 18px; border-radius: 20px; margin-bottom: 12px; border-left: 8px solid var(--pms-red); position: relative; }
+        .status-left { border-left-color: #94a3b8; opacity: 0.6; filter: grayscale(1); }
+        .pay-badge { background: #e0f2fe; color: #0369a1; padding: 5px 10px; border-radius: 8px; font-weight: 800; font-size: 12px; display: inline-block; margin-top: 5px; }
+        .lin-tag { position: absolute; top: 10px; right: 10px; font-size: 10px; background: #f1f5f9; padding: 2px 6px; border-radius: 5px; font-weight: bold; color: var(--pms-blue); }
         
         #adminArea { display: none; }
     </style>
@@ -35,7 +35,7 @@
 
 <header>
     <div style="width:40px"></div>
-    <span style="font-weight: 900;">SCHOOL REGISTRY</span>
+    <span style="font-weight: 900; letter-spacing: 1px;">SCHOOL REGISTRY</span>
     <div onclick="openAdmin()" style="cursor:pointer; font-size:24px; padding-right:10px;">⚙️</div>
 </header>
 
@@ -44,14 +44,14 @@
     <div style="font-style:italic; font-size:12px; opacity:0.8;">"With God everything is possible"</div>
 </div>
 
-<div class="dash-grid">
+<div class="dash-container">
     <div class="stat-card">
         <span class="stat-num" id="totalActive">0</span>
         <span class="stat-label">Active Students</span>
     </div>
     <div class="stat-card">
         <span class="stat-num" id="classCount">0</span>
-        <span class="stat-label" id="classLabel">Filtered Total</span>
+        <span class="stat-label" id="classLabel">Total Shown</span>
     </div>
 </div>
 
@@ -60,30 +60,28 @@
         <h3 style="margin-top:0; color:var(--pms-blue)">New Student Entry</h3>
         <input type="text" id="fName" placeholder="Full Student Name">
         <input type="text" id="fPhone" placeholder="Parent Contact">
-        <input type="text" id="fLoc" placeholder="Location">
         
-        <label style="font-size:11px; font-weight:bold;">Student Class</label>
+        <label style="font-size:11px; font-weight:bold; color:var(--pms-blue)">Class & Status</label>
         <select id="fClass">
             <option>Baby Class</option><option>Middle Class</option><option>Top Class</option>
             <option>P.1</option><option>P.2</option><option>P.3</option><option>P.4</option>
             <option>P.5</option><option>P.6</option><option>P.7</option>
         </select>
 
-        <label style="font-size:11px; font-weight:bold;">Student Status</label>
         <select id="fStatus">
-            <option value="Active">Active / Still in School</option>
-            <option value="Left">Left School / Inactive</option>
+            <option value="Active">Currently in School (Active)</option>
+            <option value="Left">Has Left School (Inactive)</option>
         </select>
         
         <input type="text" id="fPayCode" placeholder="Enter Payment Code">
         <button class="btn-save" onclick="saveRecord()">SAVE STUDENT</button>
-        <p id="msg" style="text-align:center; font-weight:bold; font-size:12px; color: red;"></p>
+        <p id="msg" style="text-align:center; font-weight:bold; font-size:12px; margin-top:10px; color: red;"></p>
     </div>
 
     <div class="card" style="padding: 10px; border: 2px solid var(--pms-blue);">
-        <input type="text" id="search" placeholder="🔍 Search Name or Payment Code..." onkeyup="filterList()" style="margin-bottom:10px;">
-        <select id="filterClass" onchange="filterList()" style="margin-bottom:0; background: #f8fafc;">
-            <option value="All">All Classes</option>
+        <input type="text" id="search" placeholder="🔍 Search name or payment code..." onkeyup="runFilters()" style="margin-bottom:10px;">
+        <select id="filterClass" onchange="runFilters()" style="margin-bottom:0; background: #f8fafc; font-weight: bold; color: var(--pms-blue);">
+            <option value="All">All Classes (Show Everything)</option>
             <option>Baby Class</option><option>Middle Class</option><option>Top Class</option>
             <option>P.1</option><option>P.2</option><option>P.3</option><option>P.4</option>
             <option>P.5</option><option>P.6</option><option>P.7</option>
@@ -94,7 +92,7 @@
 </div>
 
 <script>
-    // Paste your Supabase "anon" key below
+    // CRITICAL: You must ensure these two strings are 100% correct from Supabase
     const SB_URL = "https://kjftrwuucjdnhfwesrup.supabase.co"; 
     const SB_KEY = "PASTE_THE_LONG_EY_STRING_HERE"; 
 
@@ -108,15 +106,10 @@
         const { data, error } = await supabaseClient.from('students').select('*').order('name');
         if(!error) { 
             studentDB = data || []; 
-            updateDashboard(studentDB);
-            display(studentDB); 
+            runFilters(); // This will update dashboard and list
+        } else {
+            alert("Error: " + error.message);
         }
-    }
-
-    function updateDashboard(list) {
-        // Only count students who are "Active"
-        const activeOnly = list.filter(s => s.status !== 'Left');
-        document.getElementById('totalActive').innerText = activeOnly.length;
     }
 
     function openAdmin() {
@@ -124,28 +117,44 @@
         if(p === "mothers.comit1") {
             isAdmin = true;
             document.getElementById('adminArea').style.display = 'block';
-            display(studentDB);
+            runFilters();
         }
+    }
+
+    function runFilters() {
+        const searchQ = document.getElementById('search').value.toLowerCase();
+        const classQ = document.getElementById('filterClass').value;
+
+        // 1. Update the Dashboard Total (Only Active students)
+        const activeTotal = studentDB.filter(s => s.status !== 'Left').length;
+        document.getElementById('totalActive').innerText = activeTotal;
+
+        // 2. Filter the List for display
+        let filtered = studentDB.filter(s => {
+            const matchesSearch = s.name.toLowerCase().includes(searchQ) || (s.payment_code && s.payment_code.toLowerCase().includes(searchQ));
+            const matchesClass = (classQ === "All") || (s.class === classQ);
+            return matchesSearch && matchesClass;
+        });
+
+        // 3. Update "Filtered Total" label
+        document.getElementById('classCount').innerText = filtered.length;
+        document.getElementById('classLabel').innerText = classQ === "All" ? "Total Shown" : classQ + " Total";
+
+        display(filtered);
     }
 
     function display(list) {
         const box = document.getElementById('mainList');
         box.innerHTML = "";
         
-        // Update the sub-total count for the filtered view
-        document.getElementById('classCount').innerText = list.length;
-        const currentClass = document.getElementById('filterClass').value;
-        document.getElementById('classLabel').innerText = currentClass === "All" ? "Filtered Total" : currentClass;
-
         list.forEach(s => {
             const isLeft = s.status === 'Left';
             box.innerHTML += `
                 <div class="s-box ${isLeft ? 'status-left' : ''}">
-                    <span class="lin-badge">${s.lin}</span>
+                    <span class="lin-tag">${s.lin}</span>
                     <span style="font-weight: 800; color: var(--pms-blue); font-size: 18px;">${s.name}</span><br>
-                    <span style="font-size: 13px; color: #64748b;">📍 ${s.location} | 📚 ${s.class}</span><br>
-                    <div class="pay-tag">💳 Code: ${s.payment_code || '---'}</div>
-                    ${isLeft ? '<br><b style="color:red; font-size:10px;">LEFT SCHOOL</b>' : ''}
+                    <span style="font-size: 13px; color: #64748b;">📚 ${s.class} ${isLeft ? ' | <b style="color:red">LEFT SCHOOL</b>' : ''}</span><br>
+                    <div class="pay-badge">💳 Code: ${s.payment_code || '---'}</div>
                     ${isAdmin ? `<div style="margin-top:10px; font-size:11px; color:blue; cursor:pointer" onclick="deleteItem('${s.id}')">🗑️ REMOVE</div>` : ''}
                 </div>`;
         });
@@ -153,17 +162,16 @@
 
     async function saveRecord() {
         const nameInput = document.getElementById('fName').value;
-        if(!nameInput) return alert("Please enter a name");
+        if(!nameInput) return alert("Enter student name");
 
-        // Generate LIN: First Letter of Name + Random Number
-        const firstLetter = nameInput.charAt(0).toUpperCase();
+        // LIN LOGIC: First letter + Random 4-digit number
+        const firstLetter = nameInput.trim().charAt(0).toUpperCase();
         const randNum = Math.floor(1000 + Math.random() * 9000);
         const newLin = firstLetter + "-" + randNum;
 
         const info = {
             name: nameInput,
             contact: document.getElementById('fPhone').value,
-            location: document.getElementById('fLoc').value,
             class: document.getElementById('fClass').value,
             status: document.getElementById('fStatus').value,
             payment_code: document.getElementById('fPayCode').value,
@@ -175,23 +183,10 @@
     }
 
     async function deleteItem(id) {
-        if(confirm("Delete student?")) {
+        if(confirm("Delete this record?")) {
             await supabaseClient.from('students').delete().eq('id', id);
             location.reload();
         }
-    }
-
-    function filterList() {
-        const searchQ = document.getElementById('search').value.toLowerCase();
-        const classQ = document.getElementById('filterClass').value;
-
-        let filtered = studentDB.filter(s => {
-            const matchesSearch = s.name.toLowerCase().includes(searchQ) || (s.payment_code && s.payment_code.toLowerCase().includes(searchQ));
-            const matchesClass = (classQ === "All") || (s.class === classQ);
-            return matchesSearch && matchesClass;
-        });
-
-        display(filtered);
     }
 </script>
 </body>
