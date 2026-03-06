@@ -3,114 +3,133 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PMS Registry | Live</title>
+    <title>PMS Data Center</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --pms-blue: #1e40af; --pms-red: #e11d48; --white: #ffffff; }
-        body { font-family: sans-serif; margin: 0; background: #f0f9ff; padding-bottom: 60px; }
-        header { background: var(--pms-red); color: white; padding: 15px; text-align: center; font-weight: 900; }
-        .hero { background: var(--pms-blue); color: white; padding: 30px 20px 50px; text-align: center; border-radius: 0 0 40px 40px; }
-        .dash-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 15px; margin-top: -30px; }
-        .stat-card { background: white; padding: 15px; border-radius: 20px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.1); border-bottom: 4px solid var(--pms-red); }
-        .stat-num { display: block; font-size: 26px; font-weight: 900; color: var(--pms-blue); }
-        .container { max-width: 450px; margin: 0 auto; padding: 10px; }
-        .card { background: white; padding: 22px; border-radius: 25px; box-shadow: 0 8px 20px rgba(0,0,0,0.05); margin-bottom: 15px; }
-        input, select, textarea { width: 100%; padding: 14px; margin-bottom: 10px; border-radius: 12px; border: 1.5px solid #e2e8f0; font-size: 15px; box-sizing: border-box; }
-        .btn-save { background: var(--pms-blue); color: white; border: none; width: 100%; padding: 16px; border-radius: 15px; font-weight: bold; cursor: pointer; }
-        .s-box { background: white; padding: 18px; border-radius: 22px; margin-bottom: 12px; border-left: 8px solid var(--pms-red); }
-        .footer { text-align: center; padding: 20px; font-size: 12px; color: #64748b; font-weight: bold; }
+        :root { --blue: #1e40af; --red: #e11d48; }
+        body { font-family: sans-serif; margin: 0; background: #f8fafc; padding-bottom: 80px; }
+        header { background: var(--red); color: white; padding: 20px; text-align: center; font-weight: bold; position: relative; }
+        .hero { background: var(--blue); color: white; padding: 30px; text-align: center; border-radius: 0 0 30px 30px; }
+        .dash { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 0 15px; margin-top: -25px; }
+        .stat { background: white; padding: 15px; border-radius: 15px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .num { display: block; font-size: 24px; font-weight: 900; color: var(--blue); }
+        .container { max-width: 450px; margin: 15px auto; padding: 0 15px; }
+        .card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 15px; }
+        input, select, textarea { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; }
+        .btn-main { background: var(--blue); color: white; border: none; width: 100%; padding: 15px; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .admin-trigger { background: rgba(255,255,255,0.2); color: white; border: 1px solid white; padding: 5px 10px; border-radius: 5px; font-size: 10px; position: absolute; right: 10px; top: 15px; cursor: pointer; }
     </style>
 </head>
 <body>
 
-<header onclick="openAdmin()">PROGRESSIVE MOTHERS REGISTRY</header>
+<header>
+    PROGRESSIVE MOTHERS REGISTRY
+    <div class="admin-trigger" onclick="checkAdmin()">ADMIN LOGIN</div>
+</header>
 
 <div class="hero">
-    <h2 style="margin:0; font-size: 22px;">SCHOOL DATA CENTER</h2>
-    <div style="font-style:italic; font-size:12px; opacity:0.9; margin-top:5px;">"With God everything is possible"</div>
+    <h2 style="margin:0;">SCHOOL DATA CENTER</h2>
+    <div style="font-size:11px; opacity:0.8;">"With God everything is possible"</div>
 </div>
 
-<div class="dash-row">
-    <div class="stat-card"><span class="stat-num" id="activeTotal">0</span><small>ACTIVE STUDENTS</small></div>
-    <div class="stat-card"><span class="stat-num" id="filterCount">0</span><small>TOTAL SHOWN</small></div>
+<div class="dash">
+    <div class="stat"><span class="num" id="activeCount">0</span><small>ACTIVE STUDENTS</small></div>
+    <div class="stat"><span class="num" id="totalCount">0</span><small>TOTAL SHOWN</small></div>
 </div>
 
 <div class="container">
-    <div id="adminArea" class="card" style="display:none;">
-        <h3 style="margin-top:0; color:var(--pms-blue)">New Student Entry</h3>
-        <input type="text" id="fName" placeholder="Full Name">
-        <input type="number" id="fAge" placeholder="Age">
-        <input type="text" id="fPhone" placeholder="Contact (+256...)">
-        <input type="text" id="fLoc" placeholder="Physical Location">
-        <select id="fClass">
+    <div class="card" id="formBox" style="display:none; border: 2px solid var(--red);">
+        <h3 style="margin-top:0; color:var(--red)">Register Student</h3>
+        <input type="text" id="name" placeholder="Full Name">
+        <input type="number" id="age" placeholder="Age">
+        <input type="date" id="dob" placeholder="Date of Birth">
+        <input type="text" id="contacts" placeholder="Contact Number">
+        <input type="text" id="location" placeholder="Physical Location">
+        <select id="class">
             <option>Baby Class</option><option>Middle Class</option><option>Top Class</option>
             <option>P.1</option><option>P.2</option><option>P.3</option><option>P.4</option>
             <option>P.5</option><option>P.6</option><option>P.7</option>
         </select>
-        <select id="fStatus"><option value="Active">Active</option><option value="Left">Left</option></select>
-        <textarea id="fHealth" placeholder="Health Status (Allergies)"></textarea>
-        <input type="text" id="fPay" placeholder="Payment/Receipt Code">
-        <button class="btn-save" onclick="saveRecord()">SAVE TO DATABASE</button>
+        <select id="status"><option value="Active">Active</option><option value="Left">Left</option></select>
+        <textarea id="health" placeholder="Health Status (Allergies)"></textarea>
+        <input type="text" id="pay" placeholder="Payment Code">
+        <button class="btn-main" onclick="saveData()">SAVE STUDENT DATA</button>
+        <button class="btn-main" style="background:#666;" onclick="document.getElementById('formBox').style.display='none'">CANCEL</button>
     </div>
 
-    <div class="card" style="border: 2px solid var(--pms-blue);">
-        <input type="text" id="search" placeholder="🔍 Search name or location..." onkeyup="applyFilters()">
+    <div class="card" style="border: 2px solid var(--blue);">
+        <input type="text" id="search" placeholder="🔍 Search name or location..." onkeyup="drawList()">
     </div>
-    <div id="mainList"></div>
+    <div id="studentList"></div>
 </div>
 
-<div class="footer">Developed by Eudes Media | +256762992440</div>
+<div style="text-align: center; padding: 20px; font-size: 11px; font-weight: bold; color: #666;">
+    Eudes Media | +256762992440
+</div>
 
 <script>
-    const SB_URL = "https://cpfttwvonuptqdpskobx.supabase.co";
-    const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNwdGZ0d3ZvbnVwdHFkcHNrb2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1MjAxNDUsImV4cCI6MjA4ODA5NjE0NX0.gnl0g0NKUv_zfyaJufSKSRO54drR6nGjIKgioj8Tcxc";
-    const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
-    let studentDB = [];
+    const S_URL = "https://cpfttwvonuptqdpskobx.supabase.co";
+    const S_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNwdGZ0d3ZvbnVwdHFkcHNrb2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1MjAxNDUsImV4cCI6MjA4ODA5NjE0NX0.gnl0g0NKUv_zfyaJufSKSRO54drR6nGjIKgioj8Tcxc";
+    const sb = supabase.createClient(S_URL, S_KEY);
+    let students = [];
 
-    async function loadData() {
-        const { data, error } = await supabaseClient.from('students').select('*').order('name');
-        if(!error) { studentDB = data || []; applyFilters(); }
+    async function load() {
+        const { data, error } = await sb.from('students').select('*').order('name');
+        if(!error) { students = data || []; drawList(); }
     }
 
-    function openAdmin() {
-        let p = prompt("Admin Pass:");
-        if(p === "mothers.comit1") document.getElementById('adminArea').style.display = 'block';
+    function checkAdmin() {
+        let p = prompt("Enter Admin Password:");
+        if(p === "mothers.comit1") {
+            document.getElementById('formBox').style.display = 'block';
+            window.scrollTo(0,0);
+        } else { alert("Wrong password"); }
     }
 
-    function applyFilters() {
-        const searchVal = document.getElementById('search').value.toLowerCase();
-        document.getElementById('activeTotal').innerText = studentDB.filter(s => s.status === 'Active').length;
-        let filtered = studentDB.filter(s => s.name.toLowerCase().includes(searchVal));
-        document.getElementById('filterCount').innerText = filtered.length;
-        const box = document.getElementById('mainList');
+    function drawList() {
+        const s = document.getElementById('search').value.toLowerCase();
+        document.getElementById('activeCount').innerText = students.filter(x => x.status === 'Active').length;
+        const filtered = students.filter(x => x.name.toLowerCase().includes(s) || (x.location && x.location.toLowerCase().includes(s)));
+        document.getElementById('totalCount').innerText = filtered.length;
+        
+        const box = document.getElementById('studentList');
         box.innerHTML = "";
-        filtered.forEach(s => {
-            box.innerHTML += `<div class="s-box"><b>${s.name}</b><br><small>${s.class} | LIN: ${s.lin} | Loc: ${s.location}</small></div>`;
+        filtered.forEach(i => {
+            box.innerHTML += `<div class="card">
+                <b>${i.name}</b><br>
+                <small>${i.class} | LIN: ${i.lin || 'N/A'}</small><br>
+                <small style="color:var(--blue)">Loc: ${i.location || 'Unknown'}</small>
+            </div>`;
         });
     }
 
-    async function saveRecord() {
-        const n = document.getElementById('fName').value;
-        if(!n) return alert("Enter name");
-        const lin = n.charAt(0).toUpperCase() + "-" + Math.floor(1000 + Math.random() * 9000);
+    async function saveData() {
+        const nameVal = document.getElementById('name').value;
+        if(!nameVal) return alert("Name is required");
+        
+        const lin = nameVal.charAt(0).toUpperCase() + "-" + Math.floor(1000 + Math.random() * 9000);
 
-        // Matching your column names exactly from the screenshot
-        const { error } = await supabaseClient.from('students').insert([{
-            name: n, 
-            age: document.getElementById('fAge').value,
-            contacts: document.getElementById('fPhone').value, 
-            location: document.getElementById('fLoc').value,
-            class: document.getElementById('fClass').value, 
-            status: document.getElementById('fStatus').value,
-            health_sta: document.getElementById('fHealth').value, 
-            payment_: document.getElementById('fPay').value,
+        const { error } = await sb.from('students').insert([{
+            name: nameVal,
+            age: document.getElementById('age').value,
+            dob: document.getElementById('dob').value,
+            contacts: document.getElementById('contacts').value,
+            location: document.getElementById('location').value,
+            class: document.getElementById('class').value,
+            status: document.getElementById('status').value,
+            health_sta: document.getElementById('health').value,
+            payment_: document.getElementById('pay').value,
             lin: lin
         }]);
 
-        if(error) alert("Error: " + error.message);
-        else location.reload();
+        if(error) {
+            alert("Database Error: " + error.message);
+        } else {
+            alert("Student Saved Successfully!");
+            location.reload();
+        }
     }
-    window.onload = loadData;
+    window.onload = load;
 </script>
 </body>
 </html>
