@@ -7,151 +7,51 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --pms-blue: #0ea5e9; --pms-purple: #4c1d95; --pms-pink: #ec4899; }
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #fdf2f8; padding-bottom: 80px; }
-        header { background: linear-gradient(135deg, var(--pms-blue), var(--pms-purple)); color: white; padding: 20px; text-align: center; border-radius: 0 0 30px 30px; position: sticky; top:0; z-index:100; }
-        .container { max-width: 450px; margin: 0 auto; padding: 15px; }
-        #adminArea, #logoutBtn { display: none; }
-        .card { background: white; padding: 20px; border-radius: 25px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); margin-bottom: 20px; border: 1px solid #fce7f3; }
-        input, select, textarea { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 12px; border: 1px solid #e2e8f0; box-sizing: border-box; }
-        .btn-action { background: var(--pms-pink); color: white; border: none; width: 100%; padding: 15px; border-radius: 15px; font-weight: bold; cursor: pointer; text-transform: uppercase; }
-        .s-box { background: white; padding: 20px; border-radius: 25px; margin-bottom: 15px; border-left: 8px solid var(--pms-purple); box-shadow: 0 4px 10px rgba(0,0,0,0.03); }
-        .s-lin { color: var(--pms-pink); font-weight: 800; font-size: 13px; }
-        .s-name { font-size: 19px; color: var(--pms-purple); font-weight: 800; text-transform: uppercase; display: block; }
-        .s-info { background: #f8fafc; padding: 12px; border-radius: 15px; margin-top: 10px; font-size: 13px; line-height: 1.6; color: #475569; }
-        .s-tools { display: flex; justify-content: space-between; margin-top: 12px; padding-top: 10px; border-top: 1px dashed #e2e8f0; }
-        .t-btn { font-size: 12px; font-weight: 800; border: none; background: none; cursor: pointer; color: #2563eb; }
-        .footer { text-align: center; padding: 30px; font-size: 11px; color: #94a3b8; font-weight: bold; border-top: 1px solid #fce7f3; margin-top: 20px;}
+        body { font-family: sans-serif; margin: 0; background: #fdf2f8; padding: 15px; }
+        .card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 400px; margin: auto; }
+        input, select, textarea { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; }
+        .btn { background: var(--pms-pink); color: white; border: none; width: 100%; padding: 15px; border-radius: 10px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
-<header>
-    <div style="font-weight: 900; font-size: 1.3rem;">PROGRESSIVE MOTHERS</div>
-    <div style="font-size: 11px; font-style: italic;">"With God everything is possible"</div>
-    <button id="logoutBtn" onclick="logout()" style="margin-top:8px; background:white; color:var(--pms-purple); border:none; padding:5px 12px; border-radius:8px; font-weight:bold; cursor:pointer;">LOGOUT</button>
-</header>
-
-<div class="container">
-    <div id="loginBox" class="card" style="text-align: center;">
-        <h4 style="color:var(--pms-purple);">Registry Login</h4>
-        <input type="password" id="pass" placeholder="Enter System Password">
-        <button class="btn-action" onclick="auth()">Unlock Dashboard</button>
-    </div>
-
-    <div id="adminArea" class="card">
-        <h4 id="formTitle" style="color:var(--pms-purple); margin:0 0 15px 0;">Student Registration</h4>
-        <input type="text" id="fName" placeholder="Full Student Name">
-        <input type="text" id="fPhone" placeholder="Parent Contact Number">
-        <div style="display:flex; gap:10px;">
-            <div style="flex:1.5;"><label style="font-size:10px;font-weight:bold;">DOB</label><input type="date" id="fDOB" onchange="autoAge()"></div>
-            <div style="flex:1;"><label style="font-size:10px;font-weight:bold;">AGE</label><input type="text" id="fAge" placeholder="Age" readonly style="background:#f1f5f9;"></div>
-        </div>
-        <select id="fClass">
-            <option>Baby Class</option><option>Middle Class</option><option>Top Class</option>
-            <option>P.1</option><option>P.2</option><option>P.3</option><option>P.4</option>
-            <option>P.5</option><option>P.6</option><option>P.7</option>
-        </select>
-        <input type="text" id="fLoc" placeholder="Physical Location/Village">
-        <textarea id="fHealth" placeholder="Health Status (Allergies/Conditions)" style="height:60px;"></textarea>
-        <button class="btn-action" id="btnSave" onclick="saveRecord()">Save Academic Record</button>
-        <div id="saveStatus" style="display:none; text-align:center; color:var(--pms-pink); font-weight:bold; margin-top:10px;">Synchronizing...</div>
-    </div>
-
-    <input type="text" id="search" placeholder="🔍 Search by Name or LIN..." onkeyup="filterList()" style="padding:15px; border-radius:15px; border:2px solid var(--pms-blue); margin-bottom:20px;">
-    <div id="mainList"></div>
-</div>
-
-<div class="footer">
-    Developed by <b>Eudes Media</b> [cite: 2026-01-28]<br>
-    Call: +256762992440 | WhatsApp: +256762992440
+<div class="card">
+    <h2 style="color:var(--pms-purple); text-align:center;">Test Registry</h2>
+    <input type="text" id="fName" placeholder="Student Name">
+    <input type="text" id="fPhone" placeholder="Parent Number">
+    <input type="text" id="fLoc" placeholder="Location">
+    <button class="btn" onclick="saveRecord()">TEST SAVE</button>
+    <p id="msg" style="text-align:center; font-weight:bold;"></p>
 </div>
 
 <script>
     const SB_URL = "https://kjftrwuucjdnhfwesrup.supabase.co"; 
     const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtqZnRyd3V1Y2pkbmhmd2VzcnVwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDk2NjY0MDAsImV4cCI6MjAyNTI0MjQwMH0.1PetUo8klWCLfupRq52CVg_Y_YYrzcO"; 
     const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
-    let studentDB = []; let editID = null;
-
-    if(localStorage.getItem('pms_active_session') === 'true') { auth(true); }
-
-    function auth(isAuto = false) {
-        if(isAuto || document.getElementById('pass').value === "mothers.comit1") {
-            localStorage.setItem('pms_active_session', 'true');
-            document.getElementById('loginBox').style.display = 'none';
-            document.getElementById('adminArea').style.display = 'block';
-            document.getElementById('logoutBtn').style.display = 'inline-block';
-            loadData();
-        } else if(!isAuto) { alert("Access Denied"); }
-    }
-
-    function logout() { localStorage.clear(); location.reload(); }
-    function autoAge() {
-        const dob = new Date(document.getElementById('fDOB').value);
-        if(!isNaN(dob)) { document.getElementById('fAge').value = (new Date().getFullYear() - dob.getFullYear()) + " Yrs"; }
-    }
-
-    async function loadData() {
-        const { data } = await supabaseClient.from('students').select('*').order('name');
-        studentDB = data || []; display(studentDB);
-    }
-
-    function display(list) {
-        const box = document.getElementById('mainList');
-        box.innerHTML = "";
-        list.forEach(s => {
-            box.innerHTML += `
-                <div class="s-box">
-                    <span class="s-lin">ID: ${s.lin}</span>
-                    <span class="s-name">${s.name}</span>
-                    <div class="s-info">
-                        <b>🎂 DOB/Age:</b> ${s.dob} (${s.age})<br>
-                        <b>📍 Home:</b> ${s.location} | <b>📚 Class:</b> ${s.class}<br>
-                        <b>🏥 Health:</b> ${s.health_status || 'Normal'}<br>
-                        <b>📞 Parent:</b> ${s.contact}<br>
-                        <b>📞 Support:</b> +256762992440
-                    </div>
-                    <div class="s-tools">
-                        <button class="t-btn" onclick="triggerEdit('${s.id}')">✏️ EDIT RECORD</button>
-                        <button class="t-btn" style="color:red" onclick="triggerDelete('${s.id}')">🗑️ REMOVE</button>
-                    </div>
-                </div>`;
-        });
-    }
-
-    function triggerEdit(id) {
-        const s = studentDB.find(x => x.id === id);
-        editID = id;
-        document.getElementById('formTitle').innerText = "Updating: " + s.name;
-        document.getElementById('fName').value = s.name;
-        document.getElementById('fPhone').value = s.contact;
-        document.getElementById('fDOB').value = s.dob;
-        document.getElementById('fAge').value = s.age;
-        document.getElementById('fClass').value = s.class;
-        document.getElementById('fLoc').value = s.location;
-        document.getElementById('fHealth').value = s.health_status;
-        document.getElementById('btnSave').innerText = "Update Record";
-        window.scrollTo({top: 0, behavior: 'smooth'});
-    }
 
     async function saveRecord() {
-        document.getElementById('saveStatus').style.display = 'block';
-        const info = {
-            name: document.getElementById('fName').value, contact: document.getElementById('fPhone').value,
-            dob: document.getElementById('fDOB').value, age: document.getElementById('fAge').value,
-            class: document.getElementById('fClass').value, location: document.getElementById('fLoc').value,
-            health_status: document.getElementById('fHealth').value
-        };
-        try {
-            if(editID) { await supabaseClient.from('students').update(info).eq('id', editID); }
-            else { info.lin = "PM-" + Math.floor(1000 + Math.random() * 9000); await supabaseClient.from('students').insert([info]); }
-            location.reload();
-        } catch (e) { alert("Server Busy"); document.getElementById('saveStatus').style.display = 'none'; }
-    }
+        const msg = document.getElementById('msg');
+        msg.innerText = "⏳ Attempting to save...";
+        msg.style.color = "blue";
 
-    async function triggerDelete(id) { if(confirm("Permanently remove student?")) { await supabaseClient.from('students').delete().eq('id', id); location.reload(); } }
-    function filterList() {
-        const q = document.getElementById('search').value.toLowerCase();
-        display(studentDB.filter(x => x.name.toLowerCase().includes(q) || x.lin.toLowerCase().includes(q)));
+        const info = {
+            name: document.getElementById('fName').value,
+            contact: document.getElementById('fPhone').value,
+            location: document.getElementById('fLoc').value,
+            lin: "PM-" + Math.floor(1000 + Math.random() * 9000)
+        };
+
+        const { error } = await supabaseClient.from('students').insert([info]);
+
+        if (error) {
+            msg.innerText = "❌ ERROR: " + error.message;
+            msg.style.color = "red";
+            console.error(error);
+        } else {
+            msg.innerText = "✅ SUCCESS! Saved to Database.";
+            msg.style.color = "green";
+            setTimeout(() => location.reload(), 2000);
+        }
     }
 </script>
 </body>
