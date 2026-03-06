@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PMS Registry | Eudes Media</title>
+    <title>PMS Registry | Final Fix</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --blue: #1e40af; --red: #e11d48; --white: #ffffff; }
+        :root { --blue: #1e40af; --red: #e11d48; }
         body { font-family: sans-serif; margin: 0; background: #f8fafc; padding-bottom: 80px; }
         header { background: var(--red); color: white; padding: 20px; text-align: center; font-weight: bold; position: relative; }
         .hero { background: var(--blue); color: white; padding: 30px; text-align: center; border-radius: 0 0 30px 30px; }
@@ -18,7 +18,6 @@
         input, select, textarea { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; }
         .btn-main { background: var(--blue); color: white; border: none; width: 100%; padding: 15px; border-radius: 12px; font-weight: bold; cursor: pointer; }
         .admin-trigger { background: rgba(255,255,255,0.2); color: white; border: 1px solid white; padding: 5px 10px; border-radius: 5px; font-size: 10px; position: absolute; right: 10px; top: 15px; cursor: pointer; }
-        .footer { text-align: center; padding: 20px; font-size: 11px; font-weight: bold; color: #666; }
     </style>
 </head>
 <body>
@@ -39,8 +38,10 @@
 </div>
 
 <div class="container">
+    <div id="connStatus" style="text-align:center; font-size:10px; color:red; margin-bottom:10px;">Checking Database Connection...</div>
+    
     <div class="card" id="formBox" style="display:none; border: 2px solid var(--red);">
-        <h3 style="margin-top:0; color:var(--red)">New Student Registration</h3>
+        <h3 style="margin-top:0; color:var(--red)">Register Student</h3>
         <input type="text" id="name" placeholder="Full Name">
         <input type="number" id="age" placeholder="Age">
         <input type="date" id="dob" placeholder="Date of Birth">
@@ -52,38 +53,43 @@
             <option>P.5</option><option>P.6</option><option>P.7</option>
         </select>
         <select id="status"><option value="Active">Active</option><option value="Left">Left</option></select>
-        <textarea id="health" placeholder="Health Status (Allergies)"></textarea>
+        <textarea id="health" placeholder="Health Status"></textarea>
         <input type="text" id="pay" placeholder="Payment Code">
-        <button class="btn-main" onclick="saveData()">SAVE STUDENT DATA</button>
+        <button class="btn-main" id="saveBtn" onclick="saveData()">SAVE STUDENT DATA</button>
     </div>
 
     <div class="card" style="border: 2px solid var(--blue);">
-        <input type="text" id="search" placeholder="🔍 Search name or location..." onkeyup="drawList()">
+        <input type="text" id="search" placeholder="🔍 Search name..." onkeyup="drawList()">
     </div>
     <div id="studentList"></div>
 </div>
 
-<div class="footer">
+<div style="text-align: center; padding: 20px; font-size: 11px; font-weight: bold; color: #666;">
     Eudes Media | +256762992440
 </div>
 
 <script>
+    // These must be 100% clean with no extra spaces
     const S_URL = "https://cpfttwvonuptqdpskobx.supabase.co";
     const S_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNwdGZ0d3ZvbnVwdHFkcHNrb2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1MjAxNDUsImV4cCI6MjA4ODA5NjE0NX0.gnl0g0NKUv_zfyaJufSKSRO54drR6nGjIKgioj8Tcxc";
+    
     const sb = supabase.createClient(S_URL, S_KEY);
     let students = [];
 
     async function load() {
         const { data, error } = await sb.from('students').select('*').order('name');
-        if(!error) { students = data || []; drawList(); }
+        if(error) {
+            document.getElementById('connStatus').innerText = "❌ Connection Error: Check Supabase Settings";
+        } else {
+            document.getElementById('connStatus').innerText = "✅ Database Connected";
+            students = data || []; 
+            drawList();
+        }
     }
 
     function checkAdmin() {
-        let p = prompt("Enter Admin Password:");
-        if(p === "mothers.comit1") {
-            document.getElementById('formBox').style.display = 'block';
-            window.scrollTo(0,0);
-        }
+        let p = prompt("Admin Pass:");
+        if(p === "mothers.comit1") document.getElementById('formBox').style.display = 'block';
     }
 
     function drawList() {
@@ -94,34 +100,35 @@
         const box = document.getElementById('studentList');
         box.innerHTML = "";
         filtered.forEach(i => {
-            box.innerHTML += `<div class="card">
-                <b>${i.name}</b><br>
-                <small>${i.class} | LIN: ${i.lin || 'N/A'}</small>
-            </div>`;
+            box.innerHTML += `<div class="card"><b>${i.name}</b><br><small>${i.class} | LIN: ${i.lin || 'N/A'}</small></div>`;
         });
     }
 
     async function saveData() {
+        const btn = document.getElementById('saveBtn');
+        btn.innerText = "SAVING...";
+        btn.disabled = true;
+
         const n = document.getElementById('name').value;
-        if(!n) return alert("Name is required");
         const lin = n.charAt(0).toUpperCase() + "-" + Math.floor(1000 + Math.random() * 9000);
 
-        // Using FULL names as you confirmed they are complete in Supabase
+        // Matching full column names from your database
         const { error } = await sb.from('students').insert([{
-            name: n,
-            age: document.getElementById('age').value,
-            dob: document.getElementById('dob').value,
-            contacts: document.getElementById('contacts').value,
-            location: document.getElementById('location').value,
-            class: document.getElementById('class').value,
-            status: document.getElementById('status').value,
-            health_status: document.getElementById('health').value,
-            payment_code: document.getElementById('pay').value,
-            lin: lin
+            name: n, age: document.getElementById('age').value,
+            dob: document.getElementById('dob').value, contacts: document.getElementById('contacts').value,
+            location: document.getElementById('location').value, class: document.getElementById('class').value,
+            status: document.getElementById('status').value, health_status: document.getElementById('health').value,
+            payment_code: document.getElementById('pay').value, lin: lin
         }]);
 
-        if(error) alert("Database Error: " + error.message);
-        else { alert("Success!"); location.reload(); }
+        if(error) {
+            alert("Database Error: " + error.message);
+            btn.innerText = "SAVE STUDENT DATA";
+            btn.disabled = false;
+        } else {
+            alert("Student Registered Successfully!");
+            location.reload();
+        }
     }
     window.onload = load;
 </script>
