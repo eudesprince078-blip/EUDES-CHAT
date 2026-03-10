@@ -1,139 +1,244 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PMS Registry | Eudes Media</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        :root { --blue: #1e40af; --white: #ffffff; }
-        body { font-family: sans-serif; margin: 0; background: #f0f4f8; padding-bottom: 60px; }
-        header { background: var(--blue); color: var(--white); padding: 15px; text-align: center; font-weight: bold; position: relative; }
-        .hero { background: var(--white); color: var(--blue); padding: 20px; text-align: center; border-bottom: 3px solid var(--blue); }
-        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 0 15px; margin-top: -20px; }
-        .stat { background: var(--white); padding: 15px; border-radius: 15px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border: 1px solid var(--blue); }
-        .container { max-width: 450px; margin: 0 auto; padding: 15px; }
-        .card { background: var(--white); padding: 15px; border-radius: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 12px; }
-        input, select, textarea { width: 100%; padding: 12px; margin-bottom: 8px; border-radius: 10px; border: 1px solid #ccc; box-sizing: border-box; font-size: 14px; }
-        .btn { background: var(--blue); color: var(--white); border: none; width: 100%; padding: 15px; border-radius: 12px; font-weight: bold; cursor: pointer; }
-        .admin-btn { position: absolute; right: 10px; top: 12px; border: 1px solid var(--white); padding: 5px; border-radius: 5px; font-size: 10px; cursor: pointer; }
-    </style>
+<meta charset="UTF-8">
+<title>Progressive Mother’s School System</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+body{font-family:Arial;margin:0;background:#f4f6f8}
+header{background:linear-gradient(90deg,#6f42c1,#0d6efd);color:white;padding:15px;text-align:center}
+.container{padding:15px}
+input,select,button{width:100%;padding:8px;margin:5px 0}
+button{background:#6f42c1;color:white;border:none;border-radius:4px;cursor:pointer}
+button.edit{background:#0d6efd}
+button.delete{background:#dc3545}
+table{width:100%;border-collapse:collapse;margin-top:10px;font-size:13px}
+th,td{border:1px solid #ccc;padding:6px;text-align:center}
+th{background:#eee}
+img{width:40px;height:40px;object-fit:cover;border-radius:4px}
+.hidden{display:none}
+.countBox{
+  background:#fff;
+  padding:10px;
+  margin:10px 0;
+  border-left:5px solid #6f42c1;
+  font-weight:bold;
+}
+</style>
 </head>
+
 <body>
 
+<!-- LOGIN -->
+<div id="loginBox">
 <header>
-    PROGRESSIVE MOTHERS REGISTRY
-    <div class="admin-btn" onclick="openAdmin()">ADMIN LOGIN</div>
+<h2>Progressive Mother’s Nursery & Primary School</h2>
+<p><b>Motto:</b> With God Everything Is Possible</p>
 </header>
 
-<div class="hero">
-    <h2 style="margin:0; font-size:18px;">DATA CENTER</h2>
-    <div style="font-size:11px; opacity:0.8;">"With God everything is possible"</div>
+<div class="container">
+<input id="username" placeholder="Username">
+<input id="password" type="password" placeholder="Password">
+<button onclick="login()">Login</button>
+<p id="loginMsg" style="color:red;"></p>
+</div>
 </div>
 
-<div class="stat-grid">
-    <div class="stat"><span id="aC" style="font-size:22px; font-weight:900; color:var(--blue)">0</span><br><small>ACTIVE</small></div>
-    <div class="stat"><span id="tC" style="font-size:22px; font-weight:900; color:var(--blue)">0</span><br><small>TOTAL</small></div>
-</div>
+<!-- SYSTEM -->
+<div id="systemBox" class="hidden">
+<header><h2>Student Management System</h2></header>
 
 <div class="container">
-    <div id="status" style="text-align:center; font-size:12px; font-weight:bold; margin-bottom:10px; color:orange;">Connecting...</div>
 
-    <div id="regForm" class="card" style="display:none; border: 2px solid var(--blue);">
-        <input type="text" id="n" placeholder="Student Name">
-        <input type="number" id="age" placeholder="Age">
-        <input type="date" id="dob">
-        <input type="text" id="ph" placeholder="Contact Number">
-        <input type="text" id="loc" placeholder="Physical Location">
-        <select id="cl"><option>P.1</option><option>P.2</option><option>P.3</option><option>P.4</option><option>P.5</option><option>P.6</option><option>P.7</option></select>
-        <select id="st"><option value="Active">Active</option><option value="Left">Left</option></select>
-        <textarea id="hs" placeholder="Health Status"></textarea>
-        <button class="btn" id="saveBtn" onclick="saveData()">SAVE STUDENT</button>
-    </div>
-
-    <div class="card" style="border: 2px solid var(--blue);">
-        <input type="text" id="search" placeholder="🔍 Search names..." onkeyup="render()">
-    </div>
-    <div id="list"></div>
+<div class="countBox">
+Total Number of Students: <span id="totalStudents">0</span>
 </div>
 
-<footer style="text-align: center; padding: 20px; font-size: 11px; font-weight: bold; color: #666;">
-    Eudes Media | +256762992440
-</footer>
+<h3>Register / Edit Student</h3>
+
+<input id="studentName" placeholder="Student Name">
+<select id="sex">
+<option>Male</option>
+<option>Female</option>
+</select>
+
+<input type="date" id="dob">
+<input id="studentClass" placeholder="Class (Baby – P.7)">
+<input id="year" placeholder="Year (e.g. 2025)">
+<input id="formerSchool" placeholder="Former School">
+<input type="date" id="regDate">
+<input id="contact" placeholder="Parent Contact">
+<input id="address" placeholder="Physical Address">
+<input id="paymentCode" placeholder="Payment Code">
+<input type="file" id="photo" accept="image/*">
+
+<button onclick="saveStudent()">Save Student</button>
+
+<h3>Search</h3>
+<input id="search" placeholder="Search by name, LIN, class" oninput="renderTable()">
+
+<table>
+<thead>
+<tr>
+<th>LIN</th>
+<th>Name</th>
+<th>Age</th>
+<th>Sex</th>
+<th>Class</th>
+<th>Year</th>
+<th>Contact</th>
+<th>Address</th>
+<th>Payment</th>
+<th>Photo</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody id="tableBody"></tbody>
+</table>
+
+</div>
+</div>
 
 <script>
-    // UPDATED WITH YOUR NEW KEY AND MATCHING URL
-    const URL = "https://kjftrwvuucjdnhfwesrup.supabase.co";
-    const KEY = "sb_publishable_1PetUo8klWCLfupRq52CVg_Y_YYrzcO"; 
-    
-    const client = supabase.createClient(URL, KEY);
-    let students = [];
+let students = JSON.parse(localStorage.getItem("students") || "[]");
+let editIndex = null;
 
-    async function init() {
-        try {
-            const { data, error } = await client.from('students').select('*').order('name');
-            if(error) throw error;
-            document.getElementById('status').innerHTML = "✅ Database Online";
-            students = data || [];
-            render();
-        } catch (err) {
-            document.getElementById('status').innerHTML = "❌ Connection Error: Table 'students' not found";
-            console.error(err);
-        }
-    }
+/* LOGIN */
+function login(){
+  if(username.value==="progressive" && password.value==="mothers.comit"){
+    loginBox.classList.add("hidden");
+    systemBox.classList.remove("hidden");
+    renderTable();
+  }else{
+    loginMsg.textContent="Wrong login details";
+  }
+}
 
-    function openAdmin() {
-        if(prompt("Admin Password:") === "mothers.comit1") {
-            document.getElementById('regForm').style.display = 'block';
-        }
-    }
+/* LIN */
+function generateLIN(){
+  const letters="ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  return letters[Math.floor(Math.random()*26)] +
+         letters[Math.floor(Math.random()*26)] +
+         Math.floor(1000 + Math.random()*9000);
+}
 
-    function render() {
-        const q = document.getElementById('search').value.toLowerCase();
-        document.getElementById('aC').innerText = students.filter(x => x.status === 'Active').length;
-        const filtered = students.filter(x => x.name.toLowerCase().includes(q));
-        document.getElementById('tC').innerText = filtered.length;
-        const box = document.getElementById('list');
-        box.innerHTML = "";
-        filtered.forEach(s => {
-            box.innerHTML += `<div class="card"><b>${s.name}</b><br><small>${s.class} | ID: ${s.lin || 'N/A'}</small></div>`;
-        });
-    }
+/* AGE */
+function getAge(d){
+  const dob=new Date(d), now=new Date();
+  let a=now.getFullYear()-dob.getFullYear();
+  if(now.getMonth()<dob.getMonth() || 
+    (now.getMonth()==dob.getMonth() && now.getDate()<dob.getDate())) a--;
+  return a;
+}
 
-    async function saveData() {
-        const btn = document.getElementById('saveBtn');
-        const nameVal = document.getElementById('n').value;
-        if(!nameVal) return alert("Please enter a name");
-        
-        btn.innerText = "SAVING..."; 
-        btn.disabled = true;
+/* SAVE */
+function saveStudent(){
+  if(!studentName.value){alert("Enter student name");return;}
+  const file=photo.files[0];
 
-        const lin = nameVal.charAt(0).toUpperCase() + "-" + Math.floor(1000 + Math.random() * 9000);
+  const save=(img)=>{
+    const data={
+      lin: editIndex===null?generateLIN():students[editIndex].lin,
+      name: studentName.value,
+      sex: sex.value,
+      dob: dob.value,
+      age: dob.value?getAge(dob.value):"",
+      class: studentClass.value,
+      year: year.value,
+      former: formerSchool.value,
+      regDate: regDate.value,
+      contact: contact.value,
+      address: address.value,
+      payment: paymentCode.value,
+      photo: img || (editIndex!==null?students[editIndex].photo:"")
+    };
 
-        const payload = {
-            name: nameVal,
-            age: document.getElementById('age').value,
-            dob: document.getElementById('dob').value,
-            contacts: document.getElementById('ph').value, 
-            location: document.getElementById('loc').value,
-            class: document.getElementById('cl').value,
-            status: document.getElementById('st').value,
-            health_status: document.getElementById('hs').value,
-            lin: lin
-        };
+    if(editIndex===null) students.push(data);
+    else{students[editIndex]=data;editIndex=null;}
 
-        const { error } = await client.from('students').insert([payload]);
+    localStorage.setItem("students",JSON.stringify(students));
+    clearForm();
+    renderTable();
+  };
 
-        if(error) {
-            alert("⚠️ SAVE FAILED: " + error.message);
-            btn.innerText = "SAVE STUDENT";
-            btn.disabled = false;
-        } else {
-            alert("✅ Successfully Registered!");
-            location.reload();
-        }
-    }
-    window.onload = init;
+  if(file){
+    const r=new FileReader();
+    r.onload=e=>save(e.target.result);
+    r.readAsDataURL(file);
+  }else save("");
+}
+
+/* TABLE */
+function renderTable(){
+  tableBody.innerHTML="";
+  totalStudents.textContent=students.length;
+  const q=search.value.toLowerCase();
+
+  students.filter(s=>
+    s.name.toLowerCase().includes(q) ||
+    s.lin.toLowerCase().includes(q) ||
+    s.class.toLowerCase().includes(q)
+  ).forEach((s,i)=>{
+    tableBody.innerHTML+=`
+    <tr>
+      <td>${s.lin}</td>
+      <td>${s.name}</td>
+      <td>${s.age}</td>
+      <td>${s.sex}</td>
+      <td>${s.class}</td>
+      <td>${s.year}</td>
+      <td>${s.contact}</td>
+      <td>${s.address}</td>
+      <td>${s.payment}</td>
+      <td>${s.photo?`<img src="${s.photo}">`:""}</td>
+      <td>
+        <button class="edit" onclick="editStudent(${i})">Edit</button>
+        <button class="delete" onclick="deleteStudent(${i})">Delete</button>
+      </td>
+    </tr>`;
+  });
+}
+
+/* EDIT */
+function editStudent(i){
+  const s=students[i];
+  studentName.value=s.name;
+  sex.value=s.sex;
+  dob.value=s.dob;
+  studentClass.value=s.class;
+  year.value=s.year;
+  formerSchool.value=s.former;
+  regDate.value=s.regDate;
+  contact.value=s.contact;
+  address.value=s.address;
+  paymentCode.value=s.payment;
+  editIndex=i;
+}
+
+/* DELETE */
+function deleteStudent(i){
+  if(confirm("Delete this student?")){
+    students.splice(i,1);
+    localStorage.setItem("students",JSON.stringify(students));
+    renderTable();
+  }
+}
+
+function clearForm(){
+  studentName.value="";
+  dob.value="";
+  studentClass.value="";
+  year.value="";
+  formerSchool.value="";
+  regDate.value="";
+  contact.value="";
+  address.value="";
+  paymentCode.value="";
+  photo.value="";
+}
 </script>
+
 </body>
 </html>
