@@ -6,32 +6,31 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-    :root { --blue: #0056b3; --white: #ffffff; }
     body { font-family: sans-serif; margin: 0; background: #f0f4f8; padding: 10px; }
     .box { background: white; padding: 20px; border-radius: 12px; max-width: 500px; margin: auto; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border: 1px solid #ccc; }
     input, select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; font-size: 15px; }
-    button { background: var(--blue); color: white; font-weight: bold; border: none; cursor: pointer; }
+    button { background: #0056b3; color: white; font-weight: bold; border: none; cursor: pointer; }
+    button:disabled { background: #cccccc; cursor: not-allowed; }
     .hidden { display: none; }
-    .debug { background: #ffeeee; color: red; font-size: 12px; padding: 10px; margin-top: 10px; border-radius: 5px; border: 1px solid #ffcccc; font-weight: bold; }
+    .debug { background: #ffeeee; color: red; font-size: 12px; padding: 10px; margin-top: 10px; border-radius: 5px; border: 1px solid #ffcccc; font-weight: bold; text-align: center; }
     table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 12px; }
-    th { background: var(--blue); color: white; padding: 10px; text-align: left; }
+    th { background: #0056b3; color: white; padding: 10px; text-align: left; }
     td { border-bottom: 1px solid #ddd; padding: 10px; }
 </style>
 </head>
 <body>
 
 <div id="loginBox" class="box" style="margin-top: 50px;">
-    <h2 style="text-align:center; color:var(--blue);">SCHOOL LOGIN</h2>
+    <h2 style="text-align:center; color:#0056b3;">SCHOOL LOGIN</h2>
     <input id="u_id" placeholder="USERNAME (PROGRESSIVE)">
     <input id="p_id" type="password" placeholder="PASSWORD (JESUS CARES)">
     <button onclick="login()">LOGIN SYSTEM</button>
     <p id="l_msg" style="color:red; text-align:center; font-weight:bold;"></p>
-    <div style="text-align:center; font-size:12px; margin-top:10px;">Eudes Media | +256762992440</div>
 </div>
 
 <div id="mainBox" class="hidden">
     <div class="box" style="max-width: 800px;">
-        <h2 style="text-align:center; color:var(--blue);">STUDENT REGISTRATION</h2>
+        <h2 style="text-align:center; color:#0056b3;">STUDENT REGISTRATION</h2>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
             <input id="in_name" placeholder="Full Name">
             <input id="in_age" type="number" placeholder="Age">
@@ -52,29 +51,41 @@
 </div>
 
 <script>
-// Updated with your NEW Publishable Key
+// 1. INITIALIZE IMMEDIATELY
 const URL = "https://kjftrwuucjdnhfwesrup.supabase.co";
-const KEY = "sb_publishable_1PetUo8klWCLfupRq52CVg_Y_YYrzcO"; 
+const KEY = "sb_publishable_1PetUo8klWCLfupRq52CVg_Y_YYrzcO";
 const client = supabase.createClient(URL, KEY);
 
 function login() {
     const user = document.getElementById('u_id').value.trim().toUpperCase();
     const pass = document.getElementById('p_id').value.trim().toUpperCase();
     if(user === "PROGRESSIVE" && pass === "JESUS CARES") {
-        loginBox.classList.add("hidden"); mainBox.classList.remove("hidden"); load();
-    } else { document.getElementById('l_msg').innerText = "ACCESS DENIED"; }
+        loginBox.classList.add("hidden"); 
+        mainBox.classList.remove("hidden"); 
+        load();
+    } else { 
+        document.getElementById('l_msg').innerText = "ACCESS DENIED"; 
+    }
 }
 
 async function save() {
     const sName = document.getElementById('in_name').value;
     const debug = document.getElementById('debugBox');
-    if(!sName) return alert("Enter Name");
-    
     const btn = document.getElementById('sBtn');
-    btn.innerText = "⚡ UPLOADING..."; btn.disabled = true;
+
+    if(!sName) return alert("Enter Name First");
+    
+    // SAFETY: Ensure client is loaded
+    if (!client) {
+        debug.innerText = "CRITICAL: System connection not ready. Refresh page.";
+        debug.classList.remove("hidden");
+        return;
+    }
+
+    btn.innerText = "⚡ UPLOADING..."; 
+    btn.disabled = true;
     debug.classList.add("hidden");
 
-    // LIN: PM + First Letter + 4 Random Numbers [cite: 2026-03-05]
     const lin = "PM" + sName.trim().charAt(0).toUpperCase() + Math.floor(1000 + Math.random() * 9000);
 
     try {
@@ -94,7 +105,7 @@ async function save() {
 
         if(error) {
             btn.innerText = "CONFIRM & UPLOAD"; btn.disabled = false;
-            debug.innerText = "DATABASE ERROR: " + error.message;
+            debug.innerText = "DATABASE REJECTED: " + error.message;
             debug.classList.remove("hidden");
         } else {
             alert("✅ SUCCESS! Registered as " + lin);
@@ -102,18 +113,20 @@ async function save() {
         }
     } catch (err) {
         btn.innerText = "CONFIRM & UPLOAD"; btn.disabled = false;
-        debug.innerText = "SYSTEM ERROR: " + err.message;
+        debug.innerText = "CONNECTION ERROR: " + err.message;
         debug.classList.remove("hidden");
     }
 }
 
 async function load() {
-    const { data } = await client.from('students').select('*').order('created_at', { ascending: false });
-    if(data) {
-        let html = "<table><tr><th>LIN</th><th>NAME</th><th>CLASS</th></tr>";
-        data.forEach(s => html += `<tr><td>${s.lin}</td><td>${s.name}</td><td>${s.class}</td></tr>`);
-        document.getElementById('list').innerHTML = html + "</table>";
-    }
+    try {
+        const { data } = await client.from('students').select('*').order('created_at', { ascending: false });
+        if(data) {
+            let html = "<table><tr><th>LIN</th><th>NAME</th><th>CLASS</th></tr>";
+            data.forEach(s => html += `<tr><td>${s.lin}</td><td>${s.name}</td><td>${s.class}</td></tr>`);
+            document.getElementById('list').innerHTML = html + "</table>";
+        }
+    } catch (e) { console.log("List load failed"); }
 }
 </script>
 </body>
