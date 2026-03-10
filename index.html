@@ -4,25 +4,23 @@
 <meta charset="UTF-8">
 <title>PMS ONLINE SYSTEM</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
     :root { --blue: #0056b3; --white: #ffffff; }
     body { font-family: sans-serif; margin: 0; background: #f0f4f8; padding: 10px; }
-    .box { background: white; padding: 20px; border-radius: 12px; max-width: 900px; margin: auto; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border: 1px solid #ccc; margin-bottom: 20px; }
+    .box { background: white; padding: 20px; border-radius: 12px; max-width: 850px; margin: auto; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border: 1px solid #ccc; margin-bottom: 20px; }
     input, select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; font-size: 14px; }
     button { background: var(--blue); color: white; font-weight: bold; border: none; cursor: pointer; }
-    button:disabled { background: #cccccc; cursor: not-allowed; }
-    .dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 20px; }
-    .stat-card { background: var(--blue); color: white; padding: 15px; border-radius: 10px; text-align: center; }
-    .stat-card h3 { margin: 0; font-size: 24px; }
+    .dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 15px; }
+    .stat-card { background: var(--blue); color: white; padding: 12px; border-radius: 10px; text-align: center; }
+    .stat-card h3 { margin: 5px 0 0 0; font-size: 22px; }
     .hidden { display: none; }
-    .error-box { background: #ffeeee; color: red; font-size: 12px; padding: 10px; margin-top: 10px; border-radius: 5px; border: 1px solid #ffcccc; font-weight: bold; text-align: center; }
-    table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 11px; background: white; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 11px; }
     th { background: var(--blue); color: white; padding: 10px; text-align: left; }
     td { border-bottom: 1px solid #ddd; padding: 8px; }
-    .btn-edit { background: #28a745; width: auto; padding: 5px 10px; font-size: 10px; margin-right: 2px; }
-    .btn-del { background: #dc3545; width: auto; padding: 5px 10px; font-size: 10px; }
-</style>
+    .btn-edit { background: #28a745; width: auto; padding: 4px 8px; font-size: 10px; margin-right: 2px; }
+    .btn-del { background: #dc3545; width: auto; padding: 4px 8px; font-size: 10px; }
+</cite></style>
 </head>
 <body>
 
@@ -30,24 +28,23 @@
     <h2 style="text-align:center; color:var(--blue);">SCHOOL LOGIN</h2>
     <input id="u_id" placeholder="USERNAME (PROGRESSIVE)">
     <input id="p_id" type="password" placeholder="PASSWORD (JESUS CARES)">
-    <button id="loginBtn" onclick="login()" disabled>CONNECTING...</button>
+    <button onclick="login()">LOGIN SYSTEM</button>
     <p id="l_msg" style="color:red; text-align:center; font-weight:bold;"></p>
 </div>
 
 <div id="mainBox" class="hidden">
     <div class="box">
-        <h2 style="color:var(--blue); margin-top:0;">DASHBOARD</h2>
         <div class="dash-grid">
-            <div class="stat-card"><p>Total</p><h3 id="stat_total">0</h3></div>
-            <div class="stat-card" style="background:#28a745;"><p>Active</p><h3 id="stat_active">0</h3></div>
-            <div class="stat-card" style="background:#ffc107; color:black;"><p>Last Entry</p><h3 id="stat_last">None</h3></div>
+            <div class="stat-card"><p style="margin:0; font-size:12px;">Total Students</p><h3 id="stat_total">0</h3></div>
+            <div class="stat-card" style="background:#28a745;"><p style="margin:0; font-size:12px;">Active</p><h3 id="stat_active">0</h3></div>
+            <div class="stat-card" style="background:#ffc107; color:black;"><p style="margin:0; font-size:12px;">Last Entry</p><h3 id="stat_last" style="font-size:14px;">-</h3></div>
         </div>
     </div>
 
     <div class="box">
-        <h2 id="formTitle" style="text-align:center; color:var(--blue);">REGISTRATION</h2>
+        <h2 id="formTitle" style="text-align:center; color:var(--blue); margin-top:0;">REGISTRATION</h2>
         <input id="row_id" type="hidden">
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
             <input id="in_name" placeholder="Full Name">
             <input id="in_age" type="number" placeholder="Age">
             <input id="in_dob" type="date">
@@ -56,40 +53,32 @@
             <input id="in_pay" placeholder="Payment Code">
             <select id="in_cl"><option>P.1</option><option>P.2</option><option>P.3</option><option>P.4</option><option>P.5</option><option>P.6</option><option>P.7</option></select>
             <select id="in_h"><option value="Good">Health: Good</option><option value="Attention">Attention Required</option></select>
-            <select id="in_s"><option value="Active">Status: Active</option><option value="Left">Status: Left</option></select>
+            <select id="in_s">
+                <option value="active">Status: active</option>
+                <option value="left">Status: left</option>
+            </select>
         </div>
         <button id="sBtn" onclick="save()">CONFIRM & UPLOAD</button>
         <button id="cBtn" class="hidden" style="background:#6c757d;" onclick="location.reload()">CANCEL EDIT</button>
-        <div id="debugBox" class="error-box hidden"></div>
     </div>
 
     <div class="box">
-        <h3 style="color:var(--blue);">STUDENT RECORDS</h3>
         <div style="overflow-x:auto;">
             <table>
                 <thead>
-                    <tr><th>LIN</th><th>NAME</th><th>CLASS</th><th>CONTACT</th><th>PAY-CODE</th><th>ACTION</th></tr>
+                    <tr><th>LIN</th><th>NAME</th><th>CONTACT</th><th>PAY-CODE</th><th>ACTION</th></tr>
                 </thead>
                 <tbody id="list"></tbody>
             </table>
         </div>
-        <p style="text-align:center; font-size:12px; font-weight:bold; margin-top:15px;">Developed by Eudes Media | +256762992440</p>
+        <p style="text-align:center; font-size:11px; font-weight:bold; margin-top:15px;">Eudes Media | +256762992440</p>
     </div>
 </div>
 
 <script>
-let client;
 const URL = "https://kjftrwuucjdnhfwesrup.supabase.co";
 const KEY = "sb_publishable_1PetUo8klWCLfupRq52CVg_Y_YYrzcO";
-
-window.onload = function() {
-    if (typeof supabase !== 'undefined') {
-        client = supabase.createClient(URL, KEY);
-        const lBtn = document.getElementById('loginBtn');
-        lBtn.innerText = "LOGIN SYSTEM";
-        lBtn.disabled = false;
-    }
-};
+const client = supabase.createClient(URL, KEY);
 
 function login() {
     const user = document.getElementById('u_id').value.trim().toUpperCase();
@@ -103,12 +92,10 @@ async function save() {
     const sName = document.getElementById('in_name').value;
     const rowId = document.getElementById('row_id').value;
     const statusVal = document.getElementById('in_s').value;
-    const debug = document.getElementById('debugBox');
     const btn = document.getElementById('sBtn');
     
-    if(!sName) return alert("Enter Name First");
-    btn.disabled = true;
-    btn.innerText = "SAVING...";
+    if(!sName) return alert("Enter Name");
+    btn.innerText = "UPLOADING..."; btn.disabled = true;
 
     const dataObj = {
         name: sName,
@@ -120,7 +107,7 @@ async function save() {
         class: document.getElementById('in_cl').value,
         health_status: document.getElementById('in_h').value,
         status: statusVal,
-        is_active: (statusVal === "Active")
+        is_active: (statusVal === "active") 
     };
 
     try {
@@ -131,15 +118,11 @@ async function save() {
             dataObj.lin = "PM-" + Math.floor(1000 + Math.random() * 9000);
             res = await client.from('students').insert([dataObj]);
         }
-
         if(res.error) throw res.error;
-        alert("✅ Operation Successful!");
         location.reload();
     } catch (err) {
-        btn.disabled = false;
-        btn.innerText = "CONFIRM & UPLOAD";
-        debug.innerText = "ERROR: " + err.message;
-        debug.classList.remove("hidden");
+        alert("Error: " + err.message);
+        btn.innerText = "CONFIRM & UPLOAD"; btn.disabled = false;
     }
 }
 
@@ -149,11 +132,10 @@ async function load() {
         let html = "";
         let activeCount = 0;
         data.forEach(s => {
-            if(s.status === "Active") activeCount++;
+            if(s.status === "active") activeCount++;
             html += `<tr>
                 <td>${s.lin}</td>
                 <td>${s.name}</td>
-                <td>${s.class}</td>
                 <td>${s.contact || '-'}</td>
                 <td>${s.payment_code || '-'}</td>
                 <td>
@@ -170,7 +152,7 @@ async function load() {
 }
 
 function editRow(item) {
-    document.getElementById('formTitle').innerText = "EDIT: " + item.lin;
+    document.getElementById('formTitle').innerText = "EDITING " + item.lin;
     document.getElementById('row_id').value = item.id;
     document.getElementById('in_name').value = item.name;
     document.getElementById('in_age').value = item.age;
