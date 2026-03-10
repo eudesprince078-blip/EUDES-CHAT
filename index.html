@@ -4,13 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PMS SYSTEM</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <style>
         body { font-family: sans-serif; background: #f0f4f8; padding: 10px; margin: 0; }
         .box { background: white; padding: 20px; border-radius: 12px; max-width: 450px; margin: 20px auto; border: 1px solid #ccc; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         input, select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #ccc; font-size: 15px; box-sizing: border-box; }
         button { background: #0056b3; color: white; font-weight: bold; border: none; cursor: pointer; }
-        button:disabled { background: #ccc; cursor: not-allowed; }
         .hidden { display: none; }
         table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 11px; }
         th { background: #0056b3; color: white; padding: 8px; text-align: left; }
@@ -23,7 +22,7 @@
     <h2 style="text-align:center; color:#0056b3;">SCHOOL LOGIN</h2>
     <input id="u" placeholder="USERNAME">
     <input id="p" type="password" placeholder="PASSWORD">
-    <button id="lBtn" onclick="doLogin()" disabled>WAITING FOR SYSTEM...</button>
+    <button onclick="doLogin()">LOGIN SYSTEM</button>
     <p id="err" style="color:red; text-align:center; font-size:12px;"></p>
 </div>
 
@@ -53,19 +52,14 @@
     const URL = "https://kjftrwuucjdnhfwesrup.supabase.co";
     const KEY = "sb_publishable_1PetUo8klWCLfupRq52CVg_Y_YYrzcO";
 
-    // 1. Wait for everything to load perfectly
-    window.onload = function() {
-        try {
+    function initSB() {
+        if (!sb && typeof supabase !== 'undefined') {
             sb = supabase.createClient(URL, KEY);
-            const loginBtn = document.getElementById('lBtn');
-            loginBtn.innerText = "LOGIN SYSTEM";
-            loginBtn.disabled = false; // System is now safe to use
-        } catch (e) {
-            document.getElementById('err').innerText = "Load Error. Please refresh.";
         }
-    };
+    }
 
     function doLogin() {
+        initSB(); // Try to connect the moment you login
         const user = document.getElementById('u').value.trim().toUpperCase();
         const pass = document.getElementById('p').value.trim().toUpperCase();
         
@@ -79,12 +73,13 @@
     }
 
     async function doSave() {
+        initSB();
         const name = document.getElementById('n').value;
         const status = document.getElementById('st').value;
         const btn = document.getElementById('upBtn');
 
         if (!name) return alert("Name is required");
-        if (!sb) return alert("System still loading...");
+        if (!sb) return alert("System still connecting to internet. Try again in 5 seconds.");
 
         btn.innerText = "SAVING..."; btn.disabled = true;
 
@@ -99,12 +94,12 @@
                 class: document.getElementById('cl').value,
                 health_status: document.getElementById('he').value,
                 status: status,
-                active: (status === "active"), // FIXED: Using 'active' as requested
+                active: (status === "active"), // Confirmed: matches your database
                 lin: "PM-" + Math.floor(1000 + Math.random() * 9000)
             }]);
 
             if (error) throw error;
-            alert("SAVED SUCCESSFULLY");
+            alert("SUCCESS!");
             location.reload();
         } catch (e) {
             alert("Error: " + e.message);
@@ -113,6 +108,7 @@
     }
 
     async function doLoad() {
+        initSB();
         if (!sb) return;
         const { data } = await sb.from('students').select('*').order('created_at', { ascending: false });
         if (data) {
