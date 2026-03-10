@@ -10,6 +10,7 @@
         .box { background: white; padding: 20px; border-radius: 12px; max-width: 450px; margin: 20px auto; border: 1px solid #ccc; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         input, select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #ccc; font-size: 15px; box-sizing: border-box; }
         button { background: #0056b3; color: white; font-weight: bold; border: none; cursor: pointer; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
         .hidden { display: none; }
         table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 11px; }
         th { background: #0056b3; color: white; padding: 8px; text-align: left; }
@@ -22,13 +23,13 @@
     <h2 style="text-align:center; color:#0056b3;">SCHOOL LOGIN</h2>
     <input id="u" placeholder="USERNAME">
     <input id="p" type="password" placeholder="PASSWORD">
-    <button id="lBtn" onclick="doLogin()">LOGIN SYSTEM</button>
+    <button id="lBtn" onclick="doLogin()" disabled>WAITING FOR SYSTEM...</button>
     <p id="err" style="color:red; text-align:center; font-size:12px;"></p>
 </div>
 
 <div id="mainSection" class="hidden">
     <div class="box">
-        <h2 style="text-align:center; color:#0056b3; margin-top:0;">STUDENT REGISTRATION</h2>
+        <h2 style="text-align:center; color:#0056b3; margin-top:0;">REGISTRATION</h2>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
             <input id="n" placeholder="Full Name">
             <input id="a" type="number" placeholder="Age">
@@ -48,10 +49,21 @@
 </div>
 
 <script>
+    let sb = null;
     const URL = "https://kjftrwuucjdnhfwesrup.supabase.co";
     const KEY = "sb_publishable_1PetUo8klWCLfupRq52CVg_Y_YYrzcO";
-    // Initialize immediately to avoid "client" errors
-    const sb = supabase.createClient(URL, KEY);
+
+    // 1. Wait for everything to load perfectly
+    window.onload = function() {
+        try {
+            sb = supabase.createClient(URL, KEY);
+            const loginBtn = document.getElementById('lBtn');
+            loginBtn.innerText = "LOGIN SYSTEM";
+            loginBtn.disabled = false; // System is now safe to use
+        } catch (e) {
+            document.getElementById('err').innerText = "Load Error. Please refresh.";
+        }
+    };
 
     function doLogin() {
         const user = document.getElementById('u').value.trim().toUpperCase();
@@ -72,6 +84,8 @@
         const btn = document.getElementById('upBtn');
 
         if (!name) return alert("Name is required");
+        if (!sb) return alert("System still loading...");
+
         btn.innerText = "SAVING..."; btn.disabled = true;
 
         try {
@@ -85,30 +99,29 @@
                 class: document.getElementById('cl').value,
                 health_status: document.getElementById('he').value,
                 status: status,
-                active: (status === "active"), // FIXED: Now uses 'active' instead of 'is_active'
+                active: (status === "active"), // FIXED: Using 'active' as requested
                 lin: "PM-" + Math.floor(1000 + Math.random() * 9000)
             }]);
 
             if (error) throw error;
-            alert("SAVED TO DATABASE");
+            alert("SAVED SUCCESSFULLY");
             location.reload();
         } catch (e) {
-            alert("Database Error: " + e.message);
+            alert("Error: " + e.message);
             btn.innerText = "CONFIRM & UPLOAD"; btn.disabled = false;
         }
     }
 
     async function doLoad() {
-        try {
-            const { data } = await sb.from('students').select('*').order('created_at', { ascending: false });
-            if (data) {
-                let h = "<table><tr><th>LIN</th><th>NAME</th><th>CLASS</th></tr>";
-                data.forEach(r => {
-                    h += `<tr><td>${r.lin}</td><td>${r.name}</td><td>${r.class}</td></tr>`;
-                });
-                document.getElementById('listArea').innerHTML = h + "</table>";
-            }
-        } catch(e) { console.log(e); }
+        if (!sb) return;
+        const { data } = await sb.from('students').select('*').order('created_at', { ascending: false });
+        if (data) {
+            let h = "<table><tr><th>LIN</th><th>NAME</th><th>CLASS</th></tr>";
+            data.forEach(r => {
+                h += `<tr><td>${r.lin}</td><td>${r.name}</td><td>${r.class}</td></tr>`;
+            });
+            document.getElementById('listArea').innerHTML = h + "</table>";
+        }
     }
 </script>
 </body>
