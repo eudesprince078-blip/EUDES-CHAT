@@ -1,36 +1,42 @@
-<!DOCTYPE html>
+  <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <title>PMS ONLINE SYSTEM</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.js"></script>
 <style>
+    :root { --blue: #0056b3; --white: #ffffff; }
     body { font-family: sans-serif; margin: 0; background: #f0f4f8; padding: 10px; }
     .box { background: white; padding: 20px; border-radius: 12px; max-width: 500px; margin: auto; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border: 1px solid #ccc; }
     input, select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; font-size: 15px; }
-    button { background: #0056b3; color: white; font-weight: bold; border: none; cursor: pointer; }
-    button:disabled { background: #cccccc; cursor: not-allowed; }
+    button { background: var(--blue); color: white; font-weight: bold; border: none; cursor: pointer; transition: 0.3s; }
+    button:active { background: #003d80; }
     .hidden { display: none; }
-    .debug { background: #ffeeee; color: red; font-size: 12px; padding: 10px; margin-top: 10px; border-radius: 5px; border: 1px solid #ffcccc; font-weight: bold; text-align: center; }
+    .error-box { background: #ffeeee; color: red; font-size: 12px; padding: 10px; margin-top: 10px; border-radius: 5px; border: 1px solid #ffcccc; font-weight: bold; text-align: center; }
     table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 12px; }
-    th { background: #0056b3; color: white; padding: 10px; text-align: left; }
+    th { background: var(--blue); color: white; padding: 10px; text-align: left; }
     td { border-bottom: 1px solid #ddd; padding: 10px; }
 </style>
 </head>
 <body>
 
-<div id="loginBox" class="box" style="margin-top: 50px;">
-    <h2 style="text-align:center; color:#0056b3;">SCHOOL LOGIN</h2>
+<div id="bootCheck" class="box" style="margin-top: 50px; text-align: center;">
+    <p>Connecting to System...</p>
+</div>
+
+<div id="loginBox" class="box hidden" style="margin-top: 50px;">
+    <h2 style="text-align:center; color:var(--blue);">SCHOOL LOGIN</h2>
     <input id="u_id" placeholder="USERNAME (PROGRESSIVE)">
     <input id="p_id" type="password" placeholder="PASSWORD (JESUS CARES)">
     <button onclick="login()">LOGIN SYSTEM</button>
     <p id="l_msg" style="color:red; text-align:center; font-weight:bold;"></p>
+    <div style="text-align:center; font-size:12px; margin-top:10px;">Eudes Media | +256762992440</div>
 </div>
 
 <div id="mainBox" class="hidden">
     <div class="box" style="max-width: 800px;">
-        <h2 style="text-align:center; color:#0056b3;">STUDENT REGISTRATION</h2>
+        <h2 style="text-align:center; color:var(--blue);">STUDENT REGISTRATION</h2>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
             <input id="in_name" placeholder="Full Name">
             <input id="in_age" type="number" placeholder="Age">
@@ -43,7 +49,7 @@
             <select id="in_s"><option value="Active">Status: Active</option><option value="Left">Status: Left</option></select>
         </div>
         <button id="sBtn" onclick="save()">CONFIRM & UPLOAD</button>
-        <div id="debugBox" class="debug hidden"></div>
+        <div id="debugBox" class="error-box hidden"></div>
         <hr>
         <div id="list"></div>
         <p style="text-align:center; font-size:12px; font-weight:bold; margin-top:15px;">Developed by Eudes Media | +256762992440</p>
@@ -51,10 +57,25 @@
 </div>
 
 <script>
-// 1. INITIALIZE IMMEDIATELY
-const URL = "https://kjftrwuucjdnhfwesrup.supabase.co";
-const KEY = "sb_publishable_1PetUo8klWCLfupRq52CVg_Y_YYrzcO";
-const client = supabase.createClient(URL, KEY);
+let client;
+
+// 1. Initialize Supabase as soon as the script loads
+window.onload = function() {
+    try {
+        const URL = "https://kjftrwuucjdnhfwesrup.supabase.co";
+        const KEY = "sb_publishable_1PetUo8klWCLfupRq52CVg_Y_YYrzcO"; 
+        
+        if (typeof supabase !== 'undefined') {
+            client = supabase.createClient(URL, KEY);
+            document.getElementById('bootCheck').classList.add('hidden');
+            document.getElementById('loginBox').classList.remove('hidden');
+        } else {
+            document.getElementById('bootCheck').innerHTML = "<p style='color:red;'>Connection Failed. Check Internet.</p>";
+        }
+    } catch (e) {
+        alert("Startup Error: " + e.message);
+    }
+};
 
 function login() {
     const user = document.getElementById('u_id').value.trim().toUpperCase();
@@ -75,13 +96,6 @@ async function save() {
 
     if(!sName) return alert("Enter Name First");
     
-    // SAFETY: Ensure client is loaded
-    if (!client) {
-        debug.innerText = "CRITICAL: System connection not ready. Refresh page.";
-        debug.classList.remove("hidden");
-        return;
-    }
-
     btn.innerText = "⚡ UPLOADING..."; 
     btn.disabled = true;
     debug.classList.add("hidden");
@@ -105,7 +119,7 @@ async function save() {
 
         if(error) {
             btn.innerText = "CONFIRM & UPLOAD"; btn.disabled = false;
-            debug.innerText = "DATABASE REJECTED: " + error.message;
+            debug.innerText = "DATABASE ERROR: " + error.message;
             debug.classList.remove("hidden");
         } else {
             alert("✅ SUCCESS! Registered as " + lin);
@@ -113,7 +127,7 @@ async function save() {
         }
     } catch (err) {
         btn.innerText = "CONFIRM & UPLOAD"; btn.disabled = false;
-        debug.innerText = "CONNECTION ERROR: " + err.message;
+        debug.innerText = "SYSTEM CRASH: " + err.message;
         debug.classList.remove("hidden");
     }
 }
@@ -130,4 +144,4 @@ async function load() {
 }
 </script>
 </body>
-</html>
+</html>      
