@@ -2,30 +2,33 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>PMS - FULL ADMIN</title>
+    <title>PMS - PRO MANAGEMENT SYSTEM</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <style>
-        body { font-family: sans-serif; background: #f0f4f8; padding: 10px; margin: 0; }
-        .box { background: white; padding: 20px; border-radius: 12px; max-width: 900px; margin: 15px auto; border: 2px solid #0056b3; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        :root { --blue: #0056b3; --white: #ffffff; --light: #f0f4f8; }
+        body { font-family: sans-serif; background: var(--light); padding: 10px; margin: 0; color: #333; }
+        .box { background: var(--white); padding: 20px; border-radius: 12px; max-width: 900px; margin: 15px auto; border: 2px solid var(--blue); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         .dash { display: flex; gap: 10px; margin-bottom: 15px; }
-        .stat { flex: 1; background: #0056b3; color: white; padding: 15px; border-radius: 10px; text-align: center; }
+        .stat { flex: 1; background: var(--blue); color: var(--white); padding: 15px; border-radius: 10px; text-align: center; }
         input, select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #ccc; font-size: 14px; box-sizing: border-box; }
-        button { background: #0056b3; color: white; font-weight: bold; border: none; cursor: pointer; }
-        .btn-edit { background: #ffc107; color: black; padding: 6px; border-radius: 4px; width: auto; font-size: 10px; cursor: pointer; border: none; margin-right: 5px; font-weight: bold; }
-        .btn-del { background: #dc3545; color: white; padding: 6px; border-radius: 4px; width: auto; font-size: 10px; cursor: pointer; border: none; font-weight: bold; }
+        button { background: var(--blue); color: var(--white); font-weight: bold; border: none; cursor: pointer; }
+        .btn-edit { background: #ffc107; color: black; padding: 6px 12px; border-radius: 4px; width: auto; font-size: 11px; cursor: pointer; border: none; font-weight: bold; margin-right: 5px; }
+        .btn-del { background: #dc3545; color: var(--white); padding: 6px 12px; border-radius: 4px; width: auto; font-size: 11px; cursor: pointer; border: none; font-weight: bold; }
         .hidden { display: none !important; }
-        .scroll-box { overflow-x: auto; margin-top: 15px; }
-        table { width: 100%; border-collapse: collapse; font-size: 11px; min-width: 700px; }
-        th { background: #0056b3; color: white; padding: 10px; text-align: left; }
-        td { border-bottom: 1px solid #ddd; padding: 10px; background: #fff; vertical-align: middle; }
+        .scroll-box { overflow-x: auto; margin-top: 15px; border-top: 1px solid #eee; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 750px; }
+        th { background: var(--blue); color: var(--white); padding: 12px; text-align: left; position: sticky; top: 0; }
+        td { border-bottom: 1px solid #ddd; padding: 12px; background: var(--white); vertical-align: middle; }
+        .img-preview { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1px solid #ddd; }
+        #searchBar { border: 2px solid var(--blue); height: 45px; }
     </style>
 </head>
 <body>
 
 <div id="loginSection" class="box" style="max-width: 400px;">
-    <h2 style="text-align:center; color:#0056b3;">SCHOOL LOGIN</h2>
-    <input id="user" placeholder="USERNAME">
+    <h2 style="text-align:center; color:var(--blue);">SCHOOL LOGIN</h2>
+    <input id="user" placeholder="USERNAME" value="PROGRESSIVE">
     <input id="pass" type="password" placeholder="PASSWORD">
     <button onclick="checkLogin()">LOGIN SYSTEM</button>
     <p id="msg" style="color:red; text-align:center; font-size:12px;"></p>
@@ -33,16 +36,16 @@
 
 <div id="mainSection" class="hidden">
     <div class="box">
-        <h3 style="margin-top:0; color:#0056b3;">DASHBOARD</h3>
+        <h3 style="margin-top:0; color:var(--blue);">DASHBOARD</h3>
         <div class="dash">
-            <div class="stat"><small>TOTAL</small><br><b id="countT">0</b></div>
-            <div class="stat" style="background: #28a745;"><small>ACTIVE</small><br><b id="countA">0</b></div>
+            <div class="stat"><small>TOTAL STUDENTS</small><br><b id="countT">0</b></div>
+            <div class="stat" style="background: #28a745;"><small>ACTIVE NOW</small><br><b id="countA">0</b></div>
         </div>
         <input id="searchBar" onkeyup="filterTable()" placeholder="🔍 Search Name or LIN...">
     </div>
 
     <div class="box">
-        <h2 id="formTitle" style="text-align:center; color:#0056b3; margin-top:0;">STUDENT REGISTRATION</h2>
+        <h2 id="formTitle" style="text-align:center; color:var(--blue); margin-top:0;">STUDENT REGISTRATION</h2>
         <input id="editId" type="hidden">
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
             <input id="n" placeholder="Full Name">
@@ -54,11 +57,15 @@
             <select id="cl"><option>P.1</option><option>P.2</option><option>P.3</option><option>P.4</option><option>P.5</option><option>P.6</option><option>P.7</option></select>
             <select id="he"><option value="Good">Health: Good</option><option value="Check">Health: Check</option></select>
             <select id="st"><option value="active">Status: active</option><option value="left">Status: left</option></select>
+            <div style="grid-column: span 2;">
+                <label style="font-size: 11px; font-weight: bold;">UPLOAD PHOTO:</label>
+                <input type="file" id="p_img" accept="image/*">
+            </div>
         </div>
         <button id="upBtn" onclick="doUpload()">CONFIRM & UPLOAD</button>
         <button id="cancelBtn" class="hidden" style="background:#6c757d;" onclick="resetForm()">CANCEL EDIT</button>
         
-        <h3 style="color:#0056b3; margin-top:20px;">STUDENT RECORDS</h3>
+        <h3 style="color:var(--blue); margin-top:20px;">STUDENT RECORDS</h3>
         <div class="scroll-box">
             <div id="listArea"></div>
         </div>
@@ -80,30 +87,45 @@
             document.getElementById('mainSection').classList.remove('hidden');
             sbClient = supabase.createClient(SB_URL, SB_KEY);
             fetchRecords();
-        } else { document.getElementById('msg').innerText = "WRONG CREDENTIALS"; }
+        } else { document.getElementById('msg').innerText = "ACCESS DENIED"; }
     }
 
     async function doUpload() {
         const name = document.getElementById('n').value.trim();
         const editId = document.getElementById('editId').value;
-        const status = document.getElementById('st').value;
-        if (!name) return alert("Enter Name");
+        const photoFile = document.getElementById('p_img').files[0];
+        const btn = document.getElementById('upBtn');
+        if (!name) return alert("Please enter Name");
 
-        const dataObj = {
-            name: name, age: document.getElementById('a').value,
-            dob: document.getElementById('d').value, contact: document.getElementById('ph').value,
-            location: document.getElementById('loc').value, payment_code: document.getElementById('pay').value,
-            class: document.getElementById('cl').value, health_status: document.getElementById('he').value,
-            status: status, active: (status === "active")
-        };
-
-        if (!editId) {
-            // Uses the first letter of the name provided (e.g. M for Mugisha)
-            const letter = name.charAt(0).toUpperCase();
-            dataObj.lin = "PM" + letter + "-" + Math.floor(1000 + Math.random() * 9000);
-        }
+        btn.innerText = "SAVING..."; btn.disabled = true;
+        let photoUrl = "";
 
         try {
+            // PHOTO UPLOAD LOGIC
+            if (photoFile) {
+                const fName = Date.now() + "_" + photoFile.name;
+                const { data: upData, error: upErr } = await sbClient.storage.from('student-photos').upload(fName, photoFile);
+                if (upErr) throw upErr;
+                const { data: urlData } = sbClient.storage.from('student-photos').getPublicUrl(fName);
+                photoUrl = urlData.publicUrl;
+            }
+
+            const dataObj = {
+                name: name, age: document.getElementById('a').value,
+                dob: document.getElementById('d').value, contact: document.getElementById('ph').value,
+                location: document.getElementById('loc').value, payment_code: document.getElementById('pay').value,
+                class: document.getElementById('cl').value, health_status: document.getElementById('he').value,
+                status: document.getElementById('st').value, active: (document.getElementById('st').value === "active")
+            };
+
+            if (photoUrl) dataObj.photo_url = photoUrl;
+
+            if (!editId) {
+                // LIN Letter logic: PM + First letter of name + number
+                const letter = name.charAt(0).toUpperCase();
+                dataObj.lin = "PM" + letter + "-" + Math.floor(1000 + Math.random() * 9000);
+            }
+
             const { error } = editId 
                 ? await sbClient.from('students').update(dataObj).eq('id', editId)
                 : await sbClient.from('students').insert([dataObj]);
@@ -112,7 +134,11 @@
             alert("SUCCESSFULLY SAVED!");
             resetForm(); 
             fetchRecords(); 
-        } catch (e) { alert(e.message); }
+        } catch (e) { 
+            alert("Error: " + e.message); 
+        } finally {
+            btn.innerText = "CONFIRM & UPLOAD"; btn.disabled = false;
+        }
     }
 
     async function fetchRecords() {
@@ -126,9 +152,11 @@
     }
 
     function renderTable(data) {
-        let h = "<table><tr><th>LIN</th><th>NAME</th><th>CONTACT</th><th>CLASS</th><th>ACTIONS</th></tr>";
+        let h = "<table><tr><th>PHOTO</th><th>LIN</th><th>NAME</th><th>CONTACT</th><th>CLASS</th><th>ACTIONS</th></tr>";
         data.forEach(r => {
+            const pic = r.photo_url || "https://via.placeholder.com/40";
             h += `<tr>
+                <td><img src="${pic}" class="img-preview"></td>
                 <td><b>${r.lin}</b></td>
                 <td>${r.name}</td>
                 <td>${r.contact || '-'}</td>
@@ -167,7 +195,7 @@
     }
 
     async function doDelete(id) {
-        if(confirm("Confirm Delete?")) {
+        if(confirm("Confirm deletion of this student?")) {
             const { error } = await sbClient.from('students').delete().eq('id', id);
             if (!error) fetchRecords();
         }
@@ -181,6 +209,7 @@
         document.getElementById('ph').value = "";
         document.getElementById('loc').value = "";
         document.getElementById('pay').value = "";
+        document.getElementById('p_img').value = "";
         document.getElementById('formTitle').innerText = "STUDENT REGISTRATION";
         document.getElementById('upBtn').innerText = "CONFIRM & UPLOAD";
         document.getElementById('cancelBtn').classList.add('hidden');
