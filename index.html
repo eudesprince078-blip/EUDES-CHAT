@@ -2,23 +2,29 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>PMS SYSTEM</title>
+    <title>PMS SYSTEM - ADMIN</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <style>
         body { font-family: sans-serif; background: #f0f4f8; padding: 10px; margin: 0; }
-        .box { background: white; padding: 20px; border-radius: 12px; max-width: 450px; margin: 20px auto; border: 2px solid #0056b3; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        input, select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #ccc; font-size: 15px; box-sizing: border-box; }
+        .box { background: white; padding: 20px; border-radius: 12px; max-width: 900px; margin: 15px auto; border: 2px solid #0056b3; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .dash { display: flex; gap: 10px; margin-bottom: 15px; }
+        .stat { flex: 1; background: #0056b3; color: white; padding: 15px; border-radius: 10px; text-align: center; }
+        input, select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #ccc; font-size: 14px; box-sizing: border-box; }
         button { background: #0056b3; color: white; font-weight: bold; border: none; cursor: pointer; }
+        .btn-edit { background: #ffc107; color: black; padding: 5px; font-size: 10px; width: auto; margin: 2px; }
+        .btn-del { background: #dc3545; color: white; padding: 5px; font-size: 10px; width: auto; margin: 2px; }
         .hidden { display: none !important; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 11px; }
-        th { background: #0056b3; color: white; padding: 8px; text-align: left; }
-        td { border-bottom: 1px solid #ddd; padding: 8px; }
+        .scroll-box { overflow-x: auto; margin-top: 15px; border-radius: 8px; }
+        table { width: 100%; border-collapse: collapse; font-size: 11px; min-width: 700px; }
+        th { background: #0056b3; color: white; padding: 10px; text-align: left; }
+        td { border-bottom: 1px solid #ddd; padding: 10px; background: #fff; }
+        #searchBar { border: 2px solid #0056b3; background: #fff url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="blue" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>') no-repeat 10px center; padding-left: 40px; }
     </style>
 </head>
 <body>
 
-<div id="loginSection" class="box">
+<div id="loginSection" class="box" style="max-width: 400px;">
     <h2 style="text-align:center; color:#0056b3;">SCHOOL LOGIN</h2>
     <input id="user" placeholder="USERNAME">
     <input id="pass" type="password" placeholder="PASSWORD">
@@ -28,100 +34,143 @@
 
 <div id="mainSection" class="hidden">
     <div class="box">
-        <h2 style="text-align:center; color:#0056b3; margin-top:0;">REGISTRATION</h2>
+        <h3 style="margin-top:0; color:#0056b3;">DASHBOARD</h3>
+        <div class="dash">
+            <div class="stat"><small>TOTAL</small><br><b id="countT">0</b></div>
+            <div class="stat" style="background: #28a745;"><small>ACTIVE</small><br><b id="countA">0</b></div>
+        </div>
+        <input id="searchBar" onkeyup="filterTable()" placeholder="Search Name or LIN...">
+    </div>
+
+    <div class="box">
+        <h2 id="formTitle" style="text-align:center; color:#0056b3; margin-top:0;">STUDENT REGISTRATION</h2>
+        <input id="editId" type="hidden">
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
             <input id="n" placeholder="Full Name">
             <input id="a" type="number" placeholder="Age">
             <input id="d" type="date">
-            <input id="ph" placeholder="Contact">
-            <input id="loc" placeholder="Location">
+            <input id="ph" placeholder="Contact Number">
+            <input id="loc" placeholder="Physical Location">
             <input id="pay" placeholder="Payment Code">
             <select id="cl"><option>P.1</option><option>P.2</option><option>P.3</option><option>P.4</option><option>P.5</option><option>P.6</option><option>P.7</option></select>
-            <select id="he"><option value="Good">Health: Good</option><option value="Attention">Health: Check</option></select>
+            <select id="he"><option value="Good">Health: Good</option><option value="Check">Health: Check</option></select>
             <select id="st"><option value="active">Status: active</option><option value="left">Status: left</option></select>
         </div>
         <button id="upBtn" onclick="doUpload()">CONFIRM & UPLOAD</button>
+        <button id="cancelBtn" class="hidden" style="background:#6c757d;" onclick="resetForm()">CANCEL EDIT</button>
         <hr>
-        <div id="listArea"></div>
+        <div class="scroll-box">
+            <div id="listArea"></div>
+        </div>
         <p style="text-align:center; font-weight:bold; font-size:12px; margin-top:15px;">Eudes Media | +256762992440</p>
     </div>
 </div>
 
 <script>
-    // 1. Connection Info
     const SB_URL = "https://kjftrwuucjdnhfwesrup.supabase.co";
     const SB_KEY = "sb_publishable_1PetUo8klWCLfupRq52CVg_Y_YYrzcO";
     let sbClient = null;
+    let allData = [];
 
-    // 2. Simple Login Function
     function checkLogin() {
         const u = document.getElementById('user').value.trim().toUpperCase();
         const p = document.getElementById('pass').value.trim().toUpperCase();
-        
         if (u === "PROGRESSIVE" && p === "JESUS CARES") {
-            // Hide login, show app
             document.getElementById('loginSection').classList.add('hidden');
             document.getElementById('mainSection').classList.remove('hidden');
-            
-            // Connect to database only after login works
-            if (typeof supabase !== 'undefined') {
-                sbClient = supabase.createClient(SB_URL, SB_KEY);
-                fetchRecords();
-            }
-        } else {
-            document.getElementById('msg').innerText = "WRONG USERNAME OR PASSWORD";
-        }
+            sbClient = supabase.createClient(SB_URL, SB_KEY);
+            fetchRecords();
+        } else { document.getElementById('msg').innerText = "WRONG CREDENTIALS"; }
     }
 
-    // 3. Upload Function
     async function doUpload() {
         const name = document.getElementById('n').value;
+        const editId = document.getElementById('editId').value;
         const status = document.getElementById('st').value;
-        const btn = document.getElementById('upBtn');
+        if (!name) return alert("Enter Name");
 
-        if (!name) return alert("Please enter a name");
-        if (!sbClient) return alert("System error: Refresh page");
+        const studentData = {
+            name: name, age: document.getElementById('a').value,
+            dob: document.getElementById('d').value, contact: document.getElementById('ph').value,
+            location: document.getElementById('loc').value, payment_code: document.getElementById('pay').value,
+            class: document.getElementById('cl').value, health_status: document.getElementById('he').value,
+            status: status, active: (status === "active")
+        };
 
-        btn.innerText = "SAVING...";
-        btn.disabled = true;
+        if (!editId) {
+            const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            studentData.lin = "PM" + letters.charAt(Math.floor(Math.random()*26)) + "-" + Math.floor(1000+Math.random()*9000);
+        }
 
         try {
-            const { error } = await sbClient.from('students').insert([{
-                name: name,
-                age: document.getElementById('a').value,
-                dob: document.getElementById('d').value,
-                contact: document.getElementById('ph').value,
-                location: document.getElementById('loc').value,
-                payment_code: document.getElementById('pay').value,
-                class: document.getElementById('cl').value,
-                health_status: document.getElementById('he').value,
-                status: status,
-                active: (status === "active"), // FIXED: Matches your database column
-                lin: "PM-" + Math.floor(1000 + Math.random() * 9000)
-            }]);
-
+            const { error } = editId 
+                ? await sbClient.from('students').update(studentData).eq('id', editId)
+                : await sbClient.from('students').insert([studentData]);
             if (error) throw error;
-            alert("SUCCESSFULLY SAVED");
-            location.reload();
-        } catch (e) {
-            alert("Error: " + e.message);
-            btn.innerText = "CONFIRM & UPLOAD";
-            btn.disabled = false;
-        }
+            alert("SUCCESS!"); location.reload();
+        } catch (e) { alert(e.message); }
     }
 
-    // 4. Load Records
     async function fetchRecords() {
-        if (!sbClient) return;
         const { data } = await sbClient.from('students').select('*').order('created_at', { ascending: false });
         if (data) {
-            let h = "<table><tr><th>LIN</th><th>NAME</th><th>CLASS</th></tr>";
-            data.forEach(r => {
-                h += `<tr><td>${r.lin}</td><td>${r.name}</td><td>${r.class}</td></tr>`;
-            });
-            document.getElementById('listArea').innerHTML = h + "</table>";
+            allData = data;
+            renderTable(data);
+            document.getElementById('countT').innerText = data.length;
+            document.getElementById('countA').innerText = data.filter(s => s.status === 'active').length;
         }
     }
+
+    function renderTable(data) {
+        let h = "<table><tr><th>LIN</th><th>NAME</th><th>CONTACT</th><th>CLASS</th><th>STATUS</th><th>ACTION</th></tr>";
+        data.forEach(r => {
+            h += `<tr>
+                <td><b>${r.lin}</b></td>
+                <td>${r.name}</td>
+                <td>${r.contact || '-'}</td>
+                <td>${r.class}</td>
+                <td style="color:${r.status === 'active' ? 'green' : 'red'}">${r.status}</td>
+                <td>
+                    <button class="btn-edit" onclick="startEdit('${r.id}')">EDIT</button>
+                    <button class="btn-del" onclick="doDelete('${r.id}')">DEL</button>
+                </td>
+            </tr>`;
+        });
+        document.getElementById('listArea').innerHTML = h + "</table>";
+    }
+
+    function filterTable() {
+        const term = document.getElementById('searchBar').value.toUpperCase();
+        const filtered = allData.filter(s => s.name.toUpperCase().includes(term) || s.lin.toUpperCase().includes(term));
+        renderTable(filtered);
+    }
+
+    function startEdit(id) {
+        const s = allData.find(x => x.id == id);
+        document.getElementById('editId').value = s.id;
+        document.getElementById('n').value = s.name;
+        document.getElementById('a').value = s.age;
+        document.getElementById('d').value = s.dob;
+        document.getElementById('ph').value = s.contact;
+        document.getElementById('loc').value = s.location;
+        document.getElementById('pay').value = s.payment_code;
+        document.getElementById('cl').value = s.class;
+        document.getElementById('he').value = s.health_status;
+        document.getElementById('st').value = s.status;
+        document.getElementById('formTitle').innerText = "EDITING: " + s.lin;
+        document.getElementById('upBtn').innerText = "SAVE CHANGES";
+        document.getElementById('cancelBtn').classList.remove('hidden');
+        window.scrollTo(0,0);
+    }
+
+    async function doDelete(id) {
+        if(confirm("Delete this student permanently?")) {
+            const { error } = await sbClient.from('students').delete().eq('id', id);
+            if (!error) location.reload();
+        }
+    }
+
+    function resetForm() { location.reload(); }
 </script>
 </body>
 </html>
