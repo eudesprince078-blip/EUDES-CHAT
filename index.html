@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>PMS - CAMERA & UPLOAD</title>
+    <title>PMS - FINAL STABLE</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <style>
@@ -12,16 +12,16 @@
         .stat { flex: 1; background: #0056b3; color: white; padding: 15px; border-radius: 10px; text-align: center; }
         input, select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #ccc; font-size: 14px; box-sizing: border-box; }
         button { background: #0056b3; color: white; font-weight: bold; border: none; cursor: pointer; }
-        .btn-edit { background: #ffc107; color: black; padding: 6px 12px; border-radius: 4px; width: auto; font-size: 11px; cursor: pointer; border: none; margin-right: 5px; font-weight: bold; }
-        .btn-del { background: #dc3545; color: white; padding: 6px 12px; border-radius: 4px; width: auto; font-size: 11px; cursor: pointer; border: none; font-weight: bold; }
+        .btn-edit { background: #ffc107; color: black; padding: 6px 12px; border-radius: 4px; width: auto; font-size: 11px; font-weight: bold; border: none; }
+        .btn-del { background: #dc3545; color: white; padding: 6px 12px; border-radius: 4px; width: auto; font-size: 11px; font-weight: bold; border: none; }
         .hidden { display: none !important; }
         .scroll-box { overflow-x: auto; margin-top: 15px; border: 1px solid #ddd; border-radius: 8px; }
         table { width: 100%; border-collapse: collapse; font-size: 11px; min-width: 600px; }
         th { background: #0056b3; color: white; padding: 12px; text-align: left; }
         td { border-bottom: 1px solid #ddd; padding: 12px; background: #fff; vertical-align: middle; }
-        .thumb { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1px solid #ddd; }
-        #camArea { text-align: center; background: #000; border-radius: 8px; overflow: hidden; margin: 10px 0; display: none; }
-        video { width: 100%; max-height: 300px; }
+        .thumb { width: 45px; height: 45px; border-radius: 5px; object-fit: cover; border: 1px solid #ddd; }
+        #camArea { text-align: center; background: #000; border-radius: 8px; overflow: hidden; margin: 10px 0; display: none; padding: 10px; }
+        video { width: 100%; border-radius: 8px; margin-bottom: 10px; }
     </style>
 </head>
 <body>
@@ -58,16 +58,16 @@
             <select id="he"><option value="Good">Health: Good</option><option value="Check">Health: Check</option></select>
             <select id="st"><option value="active">Status: active</option><option value="left">Status: left</option></select>
             
-            <div id="photoControls">
-                <small>Option 1: Upload File</small>
+            <div>
+                <small>Step 1: Photo</small>
                 <input type="file" id="photoInput" accept="image/*">
-                <button type="button" onclick="startCamera()" style="background:#28a745; font-size:12px;">📸 SWITCH TO CAMERA</button>
+                <button type="button" onclick="startCamera()" style="background:#28a745; font-size:12px;">📸 OPEN CAMERA</button>
             </div>
         </div>
 
         <div id="camArea">
             <video id="video" autoplay playsinline></video>
-            <button type="button" onclick="takeSnapshot()" style="background:#ffc107; color:black;">CAPTURE PHOTO</button>
+            <button type="button" onclick="takeSnapshot()" style="background:#ffc107; color:black; margin-bottom:5px;">CAPTURE PICTURE</button>
             <button type="button" onclick="stopCamera()" style="background:#dc3545;">CLOSE CAMERA</button>
             <canvas id="canvas" class="hidden"></canvas>
         </div>
@@ -100,7 +100,7 @@
         } else { document.getElementById('msg').innerText = "WRONG CREDENTIALS"; }
     }
 
-    // --- CAMERA FUNCTIONS ---
+    // Camera Controls
     async function startCamera() {
         document.getElementById('camArea').style.display = "block";
         const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
@@ -108,46 +108,42 @@
     }
 
     function stopCamera() {
-        const stream = document.getElementById('video').srcObject;
-        if (stream) stream.getTracks().forEach(track => track.stop());
+        const v = document.getElementById('video');
+        if (v.srcObject) { v.srcObject.getTracks().forEach(t => t.stop()); v.srcObject = null; }
         document.getElementById('camArea').style.display = "none";
     }
 
     function takeSnapshot() {
-        const video = document.getElementById('video');
-        const canvas = document.getElementById('canvas');
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        canvas.getContext('2d').drawImage(video, 0, 0);
-        canvas.toBlob(blob => {
-            capturedBlob = blob;
-            alert("PHOTO CAPTURED! Ready for upload.");
-            stopCamera();
-        }, 'image/jpeg');
+        const v = document.getElementById('video');
+        const c = document.getElementById('canvas');
+        c.width = v.videoWidth; c.height = v.videoHeight;
+        c.getContext('2d').drawImage(v, 0, 0);
+        c.toBlob(blob => { capturedBlob = blob; alert("Snapshot ready!"); stopCamera(); }, 'image/jpeg');
     }
 
     async function doUpload() {
-        const nameInput = document.getElementById('n').value.trim();
+        const nameVal = document.getElementById('n').value.trim();
         const editId = document.getElementById('editId').value;
         const fileInput = document.getElementById('photoInput').files[0];
         
-        if (!nameInput) return alert("Enter Student Name");
+        if (!nameVal) return alert("Enter Student Name");
 
         let photoUrl = "";
-        let uploadFile = fileInput || capturedBlob;
+        let finalFile = fileInput || capturedBlob;
         
-        if (uploadFile) {
+        if (finalFile) {
             const fileName = Date.now() + ".jpg";
+            // FIXED: Using lowercase "photos" to match your bucket
             const { data, error: upError } = await sbClient.storage
-                .from('PHOTOS') // Targeted bucket
-                .upload(fileName, uploadFile);
+                .from('photos') 
+                .upload(fileName, finalFile);
             
-            if (upError) return alert("Upload failed: Check Storage Policies.");
-            photoUrl = SB_URL + "/storage/v1/object/public/PHOTOS/" + fileName;
+            if (upError) return alert("Upload Error: Check if bucket 'photos' exists in lowercase.");
+            photoUrl = SB_URL + "/storage/v1/object/public/photos/" + fileName;
         }
 
         const record = {
-            name: nameInput, age: document.getElementById('a').value,
+            name: nameVal, age: document.getElementById('a').value,
             dob: document.getElementById('d').value, contact: document.getElementById('ph').value,
             location: document.getElementById('loc').value, payment_code: document.getElementById('pay').value,
             class: document.getElementById('cl').value, health_status: document.getElementById('he').value,
@@ -156,7 +152,7 @@
         if (photoUrl) record.photo_url = photoUrl;
 
         if (!editId) {
-            const letter = nameInput.charAt(0).toUpperCase();
+            const letter = nameVal.charAt(0).toUpperCase();
             record.lin = "PM" + letter + "-" + Math.floor(1000 + Math.random() * 9000);
         }
 
@@ -164,42 +160,33 @@
             ? await sbClient.from('students').update(record).eq('id', editId)
             : await sbClient.from('students').insert([record]);
         
-        if (error) alert("Database Error");
+        if (error) alert("Database error: " + error.message);
         else { alert("SUCCESS!"); resetForm(); fetchRecords(); }
     }
 
     async function fetchRecords() {
         const { data } = await sbClient.from('students').select('*').order('created_at', { ascending: false });
-        if (data) {
-            studentData = data;
-            renderTable(data);
-            document.getElementById('countT').innerText = data.length;
-            document.getElementById('countA').innerText = data.filter(s => s.status === 'active').length;
-        }
+        if (data) { studentData = data; renderTable(data); updateStats(data); }
     }
 
     function renderTable(data) {
         let html = "<table><tr><th>PHOTO</th><th>LIN</th><th>NAME</th><th>CLASS</th><th>ACTIONS</th></tr>";
         data.forEach(r => {
-            const img = r.photo_url ? `<img src="${r.photo_url}" class="thumb">` : `<div class="thumb" style="background:#eee;"></div>`;
-            html += `<tr>
-                <td>${img}</td>
-                <td><b>${r.lin}</b></td>
-                <td>${r.name}</td>
-                <td>${r.class}</td>
-                <td>
-                    <button class="btn-edit" onclick="startEdit('${r.id}')">EDIT</button>
-                    <button class="btn-del" onclick="doDelete('${r.id}')">DEL</button>
-                </td>
-            </tr>`;
+            const img = r.photo_url ? `<img src="${r.photo_url}" class="thumb">` : `<div style="width:45px; height:45px; background:#eee;"></div>`;
+            html += `<tr><td>${img}</td><td><b>${r.lin}</b></td><td>${r.name}</td><td>${r.class}</td>
+            <td><button class="btn-edit" onclick="startEdit('${r.id}')">EDIT</button> <button class="btn-del" onclick="doDelete('${r.id}')">DEL</button></td></tr>`;
         });
         document.getElementById('listArea').innerHTML = html + "</table>";
     }
 
+    function updateStats(data) {
+        document.getElementById('countT').innerText = data.length;
+        document.getElementById('countA').innerText = data.filter(s => s.status === 'active').length;
+    }
+
     function filterTable() {
         const term = document.getElementById('searchBar').value.toUpperCase();
-        const filtered = studentData.filter(s => s.name.toUpperCase().includes(term) || s.lin.toUpperCase().includes(term));
-        renderTable(filtered);
+        renderTable(studentData.filter(s => s.name.toUpperCase().includes(term) || s.lin.toUpperCase().includes(term)));
     }
 
     function startEdit(id) {
@@ -221,10 +208,7 @@
     }
 
     async function doDelete(id) {
-        if(confirm("Delete student?")) {
-            await sbClient.from('students').delete().eq('id', id);
-            fetchRecords();
-        }
+        if(confirm("Delete student?")) { await sbClient.from('students').delete().eq('id', id); fetchRecords(); }
     }
 
     function resetForm() {
