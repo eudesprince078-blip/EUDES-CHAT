@@ -2,176 +2,210 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>PMS Professional - Eudes Media</title>
+    <title>PMS Professional - Full Access</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <style>
-        :root { --blue: #0056b3; --white: #ffffff; }
+        :root { --blue: #0056b3; --white: #ffffff; --red: #dc3545; }
         body { font-family: 'Segoe UI', sans-serif; background: #f4f7f9; margin: 0; padding: 10px; }
-        .box { background: var(--white); padding: 20px; border-radius: 12px; max-width: 950px; margin: 10px auto; border: 1px solid #ddd; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .box { background: var(--white); padding: 20px; border-radius: 12px; max-width: 1100px; margin: 10px auto; border: 1px solid #ddd; }
         .header { background: var(--blue); color: white; padding: 15px; border-radius: 12px; text-align: center; margin-bottom: 15px; }
-        
-        /* Dashboard Stats */
-        .dash { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px; }
-        .stat { background: white; padding: 15px; border-radius: 10px; text-align: center; border-bottom: 4px solid var(--blue); }
-        .stat b { font-size: 24px; color: var(--blue); display: block; }
-        .stat span { font-size: 11px; font-weight: bold; color: #666; text-transform: uppercase; }
-
+        .dash { display: flex; gap: 10px; margin-bottom: 15px; }
+        .stat { flex: 1; background: white; padding: 12px; border-radius: 8px; text-align: center; border-bottom: 4px solid var(--blue); }
+        .stat b { font-size: 20px; color: var(--blue); display: block; }
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 15px; }
-        label { font-size: 11px; font-weight: bold; color: var(--blue); display: block; margin-bottom: 5px; }
-        input, select { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; box-sizing: border-box; }
-        
-        .btn-save { background: var(--blue); color: white; padding: 16px; border: none; width: 100%; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 16px; }
-        .btn-save:disabled { background: #999; }
-
-        .table-area { overflow-x: auto; margin-top: 20px; }
-        table { width: 100%; border-collapse: collapse; background: white; min-width: 800px; }
-        th { background: #f8f9fa; color: var(--blue); padding: 12px; text-align: left; border-bottom: 2px solid #ddd; font-size: 12px; }
+        label { font-size: 11px; font-weight: bold; color: var(--blue); display: block; margin-bottom: 4px; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; box-sizing: border-box; }
+        .btn { background: var(--blue); color: white; padding: 14px; border: none; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .btn-edit { background: #ffc107; color: #000; padding: 5px 8px; border-radius: 4px; border: none; font-size: 11px; cursor: pointer; margin-right: 4px; }
+        .btn-del { background: var(--red); color: white; padding: 5px 8px; border-radius: 4px; border: none; font-size: 11px; cursor: pointer; }
+        .table-wrap { overflow-x: auto; margin-top: 20px; }
+        table { width: 100%; border-collapse: collapse; background: white; min-width: 1000px; }
+        th { background: #f1f4f9; color: var(--blue); padding: 12px; text-align: left; border-bottom: 2px solid #ddd; font-size: 11px; }
         td { padding: 12px; border-bottom: 1px solid #eee; font-size: 13px; }
-        
-        .footer { text-align: center; margin-top: 30px; padding: 15px; font-size: 12px; font-weight: bold; color: #555; border-top: 1px solid #ddd; }
         .hidden { display: none !important; }
+        .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #555; font-weight: bold; padding: 10px; border-top: 1px solid #eee; }
     </style>
 </head>
 <body>
 
-<div id="loginGate" class="box" style="max-width:350px; margin-top:80px; text-align:center;">
+<div id="loginPage" class="box" style="max-width:350px; margin-top:80px; text-align:center;">
     <h2 style="color:var(--blue)">PMS LOGIN</h2>
-    <input id="userIn" placeholder="Username">
-    <input id="passIn" type="password" placeholder="Password" style="margin-top:10px;">
-    <button onclick="startApp()" class="btn-save" style="margin-top:20px;">ACCESS DATABASE</button>
+    <input id="u" placeholder="Username">
+    <input id="p" type="password" placeholder="Password" style="margin-top:10px;">
+    <button onclick="auth()" class="btn" style="margin-top:20px;">ACCESS SYSTEM</button>
 </div>
 
-<div id="mainApp" class="hidden">
-    <div class="header">
-        <h2 style="margin:0">PROGRESSIVE SCHOOL MANAGEMENT</h2>
-    </div>
+<div id="appPage" class="hidden">
+    <div class="header"><h2>PROGRESSIVE SCHOOL MANAGEMENT</h2></div>
 
     <div class="dash">
-        <div class="stat"><span>Total Pupils</span><b id="totalPupils">0</b></div>
-        <div class="stat"><span>Active Only</span><b id="activePupils" style="color:#28a745">0</b></div>
-        <div class="stat"><span>Filtered Count</span><b id="filteredPupils">0</b></div>
+        <div class="stat"><span>Total</span><b id="t">0</b></div>
+        <div class="stat"><span>Active</span><b id="a" style="color:green">0</b></div>
+        <div class="stat"><span>Found</span><b id="v">0</b></div>
     </div>
 
     <div class="box">
+        <h3 id="formTitle" style="color:var(--blue); margin-top:0;">Register Pupil</h3>
+        <input type="hidden" id="editId">
         <div class="grid">
-            <div><label>Full Name</label><input id="pName"></div>
-            <div><label>Gender</label><select id="pGender"><option>Male</option><option>Female</option></select></div>
-            <div><label>Age</label><input id="pAge" type="number"></div>
-            <div><label>Contact Number</label><input id="pPhone"></div>
-            <div><label>Location</label><input id="pLoc"></div>
-            <div><label>Health Status</label><input id="pHealth" value="Normal"></div>
+            <div><label>Full Name</label><input id="name"></div>
+            <div><label>Gender</label><select id="gender"><option>Male</option><option>Female</option></select></div>
+            <div><label>Age</label><input id="age" type="number"></div>
+            <div><label>Contact</label><input id="phone"></div>
+            <div><label>Location</label><input id="loc"></div>
+            <div><label>Health</label><input id="health" value="Good"></div>
+            <div><label>Payment Code</label><input id="payCode" placeholder="Enter Code"></div>
             <div><label>Class</label>
-                <select id="pClass">
+                <select id="class">
                     <option>Baby</option><option>Middle</option><option>Top</option>
                     <option>P.1</option><option>P.2</option><option>P.3</option><option>P.4</option>
                     <option>P.5</option><option>P.6</option><option>P.7</option>
                 </select>
             </div>
-            <div><label>Status</label><select id="pStatus"><option value="active">Active</option><option value="left">Left School</option></select></div>
+            <div><label>Status</label><select id="status"><option value="active">Active</option><option value="left">Left School</option></select></div>
         </div>
-        <button onclick="saveRecord()" id="saveBtn" class="btn-save">REGISTER & REFRESH LIST</button>
+        <button onclick="save()" id="sBtn" class="btn">CONFIRM & SAVE RECORD</button>
+        <button onclick="resetForm()" id="cBtn" class="btn hidden" style="background:#666; margin-top:10px;">CANCEL EDIT</button>
     </div>
 
     <div class="box">
-        <input type="text" id="searchBox" onkeyup="applyFilter()" placeholder="🔍 Search Name, LIN, or Class (Count updates instantly)...">
-        <div class="table-area">
+        <input type="text" id="find" onkeyup="search()" placeholder="🔍 Search Name, LIN, Class, or Payment Code...">
+        <div class="table-wrap">
             <table>
                 <thead>
-                    <tr><th>LIN</th><th>NAME</th><th>GENDER</th><th>CLASS</th><th>LOCATION</th><th>STATUS</th></tr>
+                    <tr><th>LIN</th><th>NAME</th><th>GENDER</th><th>CLASS</th><th>PAYMENT CODE</th><th>LOCATION</th><th>STATUS</th><th>ACTIONS</th></tr>
                 </thead>
-                <tbody id="studentTable"></tbody>
+                <tbody id="tbody"></tbody>
             </table>
         </div>
     </div>
-
     <div class="footer">Eudes Media | +256762992440</div>
 </div>
 
 <script>
-    const SB_URL = "https://kjftrwuucjdnhfwesrup.supabase.co";
-    const SB_KEY = "sb_publishable_1PetUo8klWCLfupRq52CVg_Y_YYrzcO";
-    let sbClient = null;
-    let localStore = [];
+    const URL = "https://kjftrwuucjdnhfwesrup.supabase.co";
+    const KEY = "sb_publishable_1PetUo8klWCLfupRq52CVg_Y_YYrzcO";
+    let sb = null;
+    let students = [];
 
-    function startApp() {
-        if(document.getElementById('userIn').value.toUpperCase()==="PROGRESSIVE" && document.getElementById('passIn').value.toUpperCase()==="JESUS CARES") {
-            document.getElementById('loginGate').classList.add('hidden');
-            document.getElementById('mainApp').classList.remove('hidden');
-            sbClient = supabase.createClient(SB_URL, SB_KEY);
-            loadData(); // Load old students immediately
-        } else { alert("Login Denied"); }
+    function auth() {
+        if(document.getElementById('u').value.toUpperCase()==="PROGRESSIVE" && document.getElementById('p').value.toUpperCase()==="JESUS CARES") {
+            document.getElementById('loginPage').classList.add('hidden');
+            document.getElementById('appPage').classList.remove('hidden');
+            sb = supabase.createClient(URL, KEY);
+            refresh();
+        } else { alert("Login Failed"); }
     }
 
-    async function loadData() {
-        try {
-            const { data, error } = await sbClient.from('students').select('*').order('created_at', { ascending: false });
-            if(error) throw error;
-            if(data) {
-                localStore = data;
-                updateView(data);
-                document.getElementById('totalPupils').innerText = data.length;
-                document.getElementById('activePupils').innerText = data.filter(s => s.status === 'active').length;
-            }
-        } catch (e) {
-            console.error(e);
-            alert("Table error: Check if 'gender' column exists in Supabase.");
+    async function refresh() {
+        const { data } = await sb.from('students').select('*').order('created_at', { ascending: false });
+        if(data) {
+            students = data;
+            draw(data);
+            document.getElementById('t').innerText = data.length;
+            document.getElementById('a').innerText = data.filter(s => s.status === 'active').length;
         }
     }
 
-    function updateView(list) {
-        let html = "";
-        list.forEach(s => {
-            html += `<tr>
-                <td><b>${s.lin || 'N/A'}</b></td>
+    function draw(arr) {
+        let h = "";
+        arr.forEach(s => {
+            h += `<tr>
+                <td><b>${s.lin || '---'}</b></td>
                 <td>${(s.name || '').toUpperCase()}</td>
                 <td>${s.gender || '---'}</td>
                 <td>${s.class || '---'}</td>
+                <td style="color:#0056b3; font-weight:bold;">${s.payment_code || '---'}</td>
                 <td>${s.location || '---'}</td>
-                <td style="font-weight:bold; color:${s.status === 'active' ? '#28a745' : '#dc3545'}">${(s.status || '---').toUpperCase()}</td>
+                <td style="font-weight:bold; color:${s.status==='active'?'green':'red'}">${(s.status || 'active').toUpperCase()}</td>
+                <td>
+                    <button class="btn-edit" onclick="edit('${s.id}')">EDIT</button>
+                    <button class="btn-del" onclick="del('${s.id}', '${s.name}')">DEL</button>
+                </td>
             </tr>`;
         });
-        document.getElementById('studentTable').innerHTML = html;
-        document.getElementById('filteredPupils').innerText = list.length;
+        document.getElementById('tbody').innerHTML = h;
+        document.getElementById('v').innerText = arr.length;
     }
 
-    async function saveRecord() {
-        const name = document.getElementById('pName').value.trim();
-        if(!name) return alert("Please enter Name");
+    async function save() {
+        const id = document.getElementById('editId').value;
+        const n = document.getElementById('name').value.trim();
+        if(!n) return alert("Please enter a name");
 
-        const btn = document.getElementById('saveBtn');
-        btn.disabled = true;
-        btn.innerText = "SAVING TO DATABASE...";
+        const btn = document.getElementById('sBtn');
+        btn.disabled = true; btn.innerText = "SAVING...";
 
-        const newLin = "PM" + name.charAt(0).toUpperCase() + "-" + Math.floor(1000 + Math.random() * 9000);
+        const obj = {
+            name: n, gender: document.getElementById('gender').value,
+            age: document.getElementById('age').value, contact: document.getElementById('phone').value,
+            location: document.getElementById('loc').value, health_status: document.getElementById('health').value,
+            payment_code: document.getElementById('payCode').value,
+            class: document.getElementById('class').value, status: document.getElementById('status').value
+        };
 
-        const { error } = await sbClient.from('students').insert([{
-            name: name, gender: document.getElementById('pGender').value,
-            age: document.getElementById('pAge').value, contact: document.getElementById('pPhone').value,
-            location: document.getElementById('pLoc').value, health_status: document.getElementById('pHealth').value,
-            class: document.getElementById('pClass').value, status: document.getElementById('pStatus').value,
-            lin: newLin
-        }]);
-
-        if(error) {
-            alert("Save Error: " + error.message);
+        let res;
+        if(id) {
+            res = await sb.from('students').update(obj).eq('id', id);
         } else {
-            alert("Saved Successfully!");
-            document.getElementById('pName').value = ""; // Clear form name
-            await loadData(); // Reload all students (Old + New)
+            obj.lin = "PM" + n.charAt(0).toUpperCase() + "-" + Math.floor(1000 + Math.random() * 9000);
+            res = await sb.from('students').insert([obj]);
         }
-        btn.disabled = false;
-        btn.innerText = "REGISTER & REFRESH LIST";
+
+        if(res.error) alert("Error: " + res.error.message);
+        else {
+            alert(id ? "Record Updated!" : "Record Saved!");
+            resetForm();
+            await refresh();
+        }
+        btn.disabled = false; btn.innerText = "CONFIRM & SAVE RECORD";
     }
 
-    function applyFilter() {
-        const q = document.getElementById('searchBox').value.toUpperCase();
-        const filtered = localStore.filter(s => 
+    function edit(id) {
+        const s = students.find(x => x.id == id);
+        if(!s) return;
+        document.getElementById('editId').value = s.id;
+        document.getElementById('name').value = s.name;
+        document.getElementById('gender').value = s.gender;
+        document.getElementById('age').value = s.age;
+        document.getElementById('phone').value = s.contact;
+        document.getElementById('loc').value = s.location;
+        document.getElementById('health').value = s.health_status;
+        document.getElementById('payCode').value = s.payment_code || "";
+        document.getElementById('class').value = s.class;
+        document.getElementById('status').value = s.status;
+        
+        document.getElementById('formTitle').innerText = "Editing: " + s.name;
+        document.getElementById('saveBtn')?.innerText ? (document.getElementById('saveBtn').innerText = "UPDATE RECORD") : null;
+        document.getElementById('cBtn').classList.remove('hidden');
+        window.scrollTo(0,0);
+    }
+
+    function resetForm() {
+        document.getElementById('editId').value = "";
+        document.getElementById('name').value = "";
+        document.getElementById('payCode').value = "";
+        document.getElementById('formTitle').innerText = "Register Pupil";
+        document.getElementById('cBtn').classList.add('hidden');
+    }
+
+    async function del(id, name) {
+        if(confirm("Delete " + name + " permanently?")) {
+            await sb.from('students').delete().eq('id', id);
+            refresh();
+        }
+    }
+
+    function search() {
+        const q = document.getElementById('find').value.toUpperCase();
+        const f = students.filter(s => 
             (s.name && s.name.toUpperCase().includes(q)) || 
             (s.lin && s.lin.toUpperCase().includes(q)) || 
-            (s.class && s.class.toUpperCase().includes(q))
+            (s.class && s.class.toUpperCase().includes(q)) ||
+            (s.payment_code && s.payment_code.toUpperCase().includes(q))
         );
-        updateView(filtered);
+        draw(f);
     }
 </script>
 </body>
