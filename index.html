@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>PMS ADMIN - PHOTO FIX</title>
+    <title>PMS - CAMERA & UPLOAD</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <style>
@@ -18,7 +18,10 @@
         .scroll-box { overflow-x: auto; margin-top: 15px; border: 1px solid #ddd; border-radius: 8px; }
         table { width: 100%; border-collapse: collapse; font-size: 11px; min-width: 600px; }
         th { background: #0056b3; color: white; padding: 12px; text-align: left; }
-        td { border-bottom: 1px solid #ddd; padding: 12px; background: #fff; }
+        td { border-bottom: 1px solid #ddd; padding: 12px; background: #fff; vertical-align: middle; }
+        .thumb { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1px solid #ddd; }
+        #camArea { text-align: center; background: #000; border-radius: 8px; overflow: hidden; margin: 10px 0; display: none; }
+        video { width: 100%; max-height: 300px; }
     </style>
 </head>
 <body>
@@ -54,11 +57,21 @@
             <select id="cl"><option>P.1</option><option>P.2</option><option>P.3</option><option>P.4</option><option>P.5</option><option>P.6</option><option>P.7</option></select>
             <select id="he"><option value="Good">Health: Good</option><option value="Check">Health: Check</option></select>
             <select id="st"><option value="active">Status: active</option><option value="left">Status: left</option></select>
-            <div>
-                <small>Upload Student Photo:</small>
+            
+            <div id="photoControls">
+                <small>Option 1: Upload File</small>
                 <input type="file" id="photoInput" accept="image/*">
+                <button type="button" onclick="startCamera()" style="background:#28a745; font-size:12px;">📸 SWITCH TO CAMERA</button>
             </div>
         </div>
+
+        <div id="camArea">
+            <video id="video" autoplay playsinline></video>
+            <button type="button" onclick="takeSnapshot()" style="background:#ffc107; color:black;">CAPTURE PHOTO</button>
+            <button type="button" onclick="stopCamera()" style="background:#dc3545;">CLOSE CAMERA</button>
+            <canvas id="canvas" class="hidden"></canvas>
+        </div>
+
         <button id="upBtn" onclick="doUpload()" style="margin-top:15px;">CONFIRM & UPLOAD</button>
         <button id="cancelBtn" class="hidden" style="background:#6c757d;" onclick="resetForm()">CANCEL EDIT</button>
         
@@ -74,6 +87,7 @@
     const SB_KEY = "sb_publishable_1PetUo8klWCLfupRq52CVg_Y_YYrzcO";
     let sbClient = null;
     let studentData = [];
+    let capturedBlob = null;
 
     function checkLogin() {
         const u = document.getElementById('user').value.trim().toUpperCase();
@@ -86,30 +100,54 @@
         } else { document.getElementById('msg').innerText = "WRONG CREDENTIALS"; }
     }
 
+    // --- CAMERA FUNCTIONS ---
+    async function startCamera() {
+        document.getElementById('camArea').style.display = "block";
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+        document.getElementById('video').srcObject = stream;
+    }
+
+    function stopCamera() {
+        const stream = document.getElementById('video').srcObject;
+        if (stream) stream.getTracks().forEach(track => track.stop());
+        document.getElementById('camArea').style.display = "none";
+    }
+
+    function takeSnapshot() {
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext('2d').drawImage(video, 0, 0);
+        canvas.toBlob(blob => {
+            capturedBlob = blob;
+            alert("PHOTO CAPTURED! Ready for upload.");
+            stopCamera();
+        }, 'image/jpeg');
+    }
+
     async function doUpload() {
-        const name = document.getElementById('n').value.trim();
+        const nameInput = document.getElementById('n').value.trim();
         const editId = document.getElementById('editId').value;
-        const photoFile = document.getElementById('photoInput').files[0];
-        if (!name) return alert("Enter Name");
+        const fileInput = document.getElementById('photoInput').files[0];
+        
+        if (!nameInput) return alert("Enter Student Name");
 
         let photoUrl = "";
+        let uploadFile = fileInput || capturedBlob;
         
-        // Handle Photo Upload to "students photos" bucket
-        if (photoFile) {
-            const fileName = Date.now() + "_" + photoFile.name;
+        if (uploadFile) {
+            const fileName = Date.now() + ".jpg";
             const { data, error: upError } = await sbClient.storage
-                .from('students photos')
-                .upload(fileName, photoFile);
+                .from('PHOTOS') // Targeted bucket
+                .upload(fileName, uploadFile);
             
-            if (upError) {
-                console.error(upError);
-                return alert("Photo Error: Use a name without spaces for your bucket if this fails.");
-            }
-            photoUrl = SB_URL + "/storage/v1/object/public/students%20photos/" + fileName;
+            if (upError) return alert("Upload failed: Check Storage Policies.");
+            photoUrl = SB_URL + "/storage/v1/object/public/PHOTOS/" + fileName;
         }
 
         const record = {
-            name: name, age: document.getElementById('a').value,
+            name: nameInput, age: document.getElementById('a').value,
             dob: document.getElementById('d').value, contact: document.getElementById('ph').value,
             location: document.getElementById('loc').value, payment_code: document.getElementById('pay').value,
             class: document.getElementById('cl').value, health_status: document.getElementById('he').value,
@@ -118,15 +156,16 @@
         if (photoUrl) record.photo_url = photoUrl;
 
         if (!editId) {
-            record.lin = "PM" + name.charAt(0).toUpperCase() + "-" + Math.floor(1000 + Math.random() * 9000);
+            const letter = nameInput.charAt(0).toUpperCase();
+            record.lin = "PM" + letter + "-" + Math.floor(1000 + Math.random() * 9000);
         }
 
         const { error } = editId 
             ? await sbClient.from('students').update(record).eq('id', editId)
             : await sbClient.from('students').insert([record]);
         
-        if (error) alert(error.message);
-        else { alert("SAVED!"); resetForm(); fetchRecords(); }
+        if (error) alert("Database Error");
+        else { alert("SUCCESS!"); resetForm(); fetchRecords(); }
     }
 
     async function fetchRecords() {
@@ -140,9 +179,11 @@
     }
 
     function renderTable(data) {
-        let html = "<table><tr><th>LIN</th><th>NAME</th><th>CLASS</th><th>ACTIONS</th></tr>";
+        let html = "<table><tr><th>PHOTO</th><th>LIN</th><th>NAME</th><th>CLASS</th><th>ACTIONS</th></tr>";
         data.forEach(r => {
+            const img = r.photo_url ? `<img src="${r.photo_url}" class="thumb">` : `<div class="thumb" style="background:#eee;"></div>`;
             html += `<tr>
+                <td>${img}</td>
                 <td><b>${r.lin}</b></td>
                 <td>${r.name}</td>
                 <td>${r.class}</td>
@@ -180,7 +221,7 @@
     }
 
     async function doDelete(id) {
-        if(confirm("Delete this student?")) {
+        if(confirm("Delete student?")) {
             await sbClient.from('students').delete().eq('id', id);
             fetchRecords();
         }
@@ -189,6 +230,7 @@
     function resetForm() {
         document.querySelectorAll('input').forEach(i => i.value = "");
         document.getElementById('editId').value = "";
+        capturedBlob = null;
         document.getElementById('formTitle').innerText = "STUDENT REGISTRATION";
         document.getElementById('upBtn').innerText = "CONFIRM & UPLOAD";
         document.getElementById('cancelBtn').classList.add('hidden');
