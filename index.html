@@ -8,39 +8,40 @@
     <style>
         :root { --blue: #0056b3; --white: #ffffff; --bg: #f4f7f9; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 10px; }
-        .box { background: var(--white); padding: 20px; border-radius: 12px; max-width: 1000px; margin: 10px auto; border: 1px solid #ddd; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .box { background: var(--white); padding: 20px; border-radius: 12px; max-width: 900px; margin: 10px auto; border: 1px solid #ddd; }
         .header { background: var(--blue); color: white; padding: 15px; border-radius: 12px; text-align: center; margin-bottom: 10px; }
         .dash { display: flex; gap: 10px; margin-bottom: 15px; }
         .stat { flex: 1; background: white; padding: 12px; border-radius: 8px; text-align: center; border-bottom: 4px solid var(--blue); }
         .stat b { font-size: 20px; color: var(--blue); display: block; }
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 15px; }
         label { font-size: 11px; font-weight: bold; color: var(--blue); display: block; margin-bottom: 4px; }
-        input, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; box-sizing: border-box; }
-        .btn { background: var(--blue); color: white; padding: 14px; border: none; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        .table-wrap { overflow-x: auto; margin-top: 20px; }
-        table { width: 100%; border-collapse: collapse; background: white; min-width: 800px; }
-        th { background: #f1f4f9; color: var(--blue); padding: 12px; text-align: left; border-bottom: 2px solid #ddd; }
+        input, select { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; box-sizing: border-box; }
+        .btn { background: var(--blue); color: white; padding: 15px; border: none; width: 100%; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.3s; }
+        .btn:disabled { background: #666; cursor: not-allowed; }
+        .table-wrap { overflow-x: auto; margin-top: 20px; background: white; border-radius: 10px; }
+        table { width: 100%; border-collapse: collapse; min-width: 800px; }
+        th { background: #f1f4f9; color: var(--blue); padding: 12px; text-align: left; font-size: 12px; border-bottom: 2px solid #ddd; }
         td { padding: 12px; border-bottom: 1px solid #eee; font-size: 13px; }
+        .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #777; font-weight: bold; padding: 10px; }
         .hidden { display: none !important; }
-        .footer { text-align: center; margin-top: 20px; font-size: 11px; color: #777; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div id="loginSection" class="box" style="max-width:350px; margin-top:60px; text-align:center;">
+<div id="login" class="box" style="max-width:350px; margin-top:80px; text-align:center;">
     <h2 style="color:var(--blue)">PMS ACCESS</h2>
     <input id="u" placeholder="Username">
     <input id="p" type="password" placeholder="Password" style="margin-top:10px;">
-    <button onclick="doLogin()" class="btn" style="margin-top:20px;">LOGIN SYSTEM</button>
+    <button onclick="auth()" class="btn" style="margin-top:20px;">LOGIN SYSTEM</button>
 </div>
 
-<div id="mainSection" class="hidden">
+<div id="app" class="hidden">
     <div class="header"><h2>PROGRESSIVE SCHOOL DATA</h2></div>
 
     <div class="dash">
-        <div class="stat"><span>Total Students</span><b id="tCount">0</b></div>
-        <div class="stat"><span>Active</span><b id="aCount" style="color:#28a745">0</b></div>
-        <div class="stat"><span>Search/Class Count</span><b id="vCount">0</b></div>
+        <div class="stat"><span>Total</span><b id="t">0</b></div>
+        <div class="stat"><span>Active</span><b id="a" style="color:#28a745">0</b></div>
+        <div class="stat"><span>View</span><b id="v">0</b></div>
     </div>
 
     <div class="box">
@@ -50,7 +51,7 @@
             <div><label>Age</label><input id="age" type="number"></div>
             <div><label>Contact</label><input id="phone"></div>
             <div><label>Location</label><input id="loc"></div>
-            <div><label>Health Status</label><input id="health" value="Good"></div>
+            <div><label>Health</label><input id="health" value="Good"></div>
             <div><label>Class</label>
                 <select id="class">
                     <option>Baby</option><option>Middle</option><option>Top</option>
@@ -60,24 +61,17 @@
             </div>
             <div><label>Status</label><select id="status"><option value="active">Active</option><option value="left">Left School</option></select></div>
         </div>
-        <button onclick="savePupil()" id="saveBtn" class="btn">CONFIRM & SAVE RECORD</button>
+        <button onclick="save()" id="sBtn" class="btn">CONFIRM & SAVE RECORD</button>
     </div>
 
     <div class="box">
-        <input type="text" id="find" onkeyup="filterTable()" placeholder="🔍 Search Name, LIN, or Class (P.1, P.5, etc)...">
+        <input type="text" id="find" onkeyup="search()" placeholder="🔍 Search Name, LIN, or Class (Count updates)...">
         <div class="table-wrap">
             <table>
                 <thead>
-                    <tr>
-                        <th>LIN</th>
-                        <th>NAME</th>
-                        <th>GENDER</th>
-                        <th>CLASS</th>
-                        <th>LOCATION</th>
-                        <th>STATUS</th>
-                    </tr>
+                    <tr><th>LIN</th><th>NAME</th><th>GENDER</th><th>CLASS</th><th>LOCATION</th><th>STATUS</th></tr>
                 </thead>
-                <tbody id="listBody"></tbody>
+                <tbody id="tbody"></tbody>
             </table>
         </div>
     </div>
@@ -88,64 +82,63 @@
     const URL = "https://kjftrwuucjdnhfwesrup.supabase.co";
     const KEY = "sb_publishable_1PetUo8klWCLfupRq52CVg_Y_YYrzcO";
     let sb = null;
-    let localData = [];
+    let students = [];
 
-    function doLogin() {
+    function auth() {
         if(document.getElementById('u').value.toUpperCase()==="PROGRESSIVE" && document.getElementById('p').value.toUpperCase()==="JESUS CARES") {
-            document.getElementById('loginSection').classList.add('hidden');
-            document.getElementById('mainSection').classList.remove('hidden');
+            document.getElementById('login').classList.add('hidden');
+            document.getElementById('app').classList.remove('hidden');
             sb = supabase.createClient(URL, KEY);
-            fetchData();
-        } else { alert("Wrong Login"); }
+            refresh();
+        } else { alert("Login Failed"); }
     }
 
-    async function savePupil() {
+    async function save() {
         const n = document.getElementById('name').value.trim();
-        if(!n) return alert("Enter Name");
+        if(!n) return alert("Please enter a student name");
 
-        const btn = document.getElementById('saveBtn');
+        const btn = document.getElementById('sBtn');
         btn.disabled = true;
         btn.innerText = "SAVING...";
 
         const lin = "PM" + n.charAt(0).toUpperCase() + "-" + Math.floor(1000 + Math.random() * 9000);
         
-        const pupil = {
-            name: n, gender: document.getElementById('gender').value,
-            age: document.getElementById('age').value, contact: document.getElementById('phone').value,
-            location: document.getElementById('loc').value, health_status: document.getElementById('health').value,
-            class: document.getElementById('class').value, status: document.getElementById('status').value,
-            lin: lin
-        };
+        try {
+            const { error } = await sb.from('students').insert([{
+                name: n, gender: document.getElementById('gender').value,
+                age: document.getElementById('age').value, contact: document.getElementById('phone').value,
+                location: document.getElementById('loc').value, health_status: document.getElementById('health').value,
+                class: document.getElementById('class').value, status: document.getElementById('status').value,
+                lin: lin
+            }]);
 
-        const { error } = await sb.from('students').insert([pupil]);
-        
-        if(error) {
-            alert("Error: " + error.message);
-        } else {
+            if(error) throw error;
+
             alert("Saved Successfully!");
-            // Clear form
-            document.getElementById('name').value = "";
-            document.getElementById('age').value = "";
-            await fetchData(); // Refresh data without logging out
+            document.getElementById('name').value = ""; // Clear form
+            await refresh(); // Force table update
+        } catch (e) {
+            alert("Error: " + e.message + "\n\nTip: Make sure you added the 'gender' column to your Supabase table.");
+        } finally {
+            btn.disabled = false;
+            btn.innerText = "CONFIRM & SAVE RECORD";
         }
-        btn.disabled = false;
-        btn.innerText = "CONFIRM & SAVE RECORD";
     }
 
-    async function fetchData() {
-        const { data, error } = await sb.from('students').select('*').order('created_at', { ascending: false });
+    async function refresh() {
+        const { data } = await sb.from('students').select('*').order('name', { ascending: true });
         if(data) {
-            localData = data;
-            renderTable(data);
-            document.getElementById('tCount').innerText = data.length;
-            document.getElementById('aCount').innerText = data.filter(s => s.status === 'active').length;
+            students = data;
+            draw(data);
+            document.getElementById('t').innerText = data.length;
+            document.getElementById('a').innerText = data.filter(s => s.status === 'active').length;
         }
     }
 
-    function renderTable(arr) {
-        let rows = "";
+    function draw(arr) {
+        let h = "";
         arr.forEach(s => {
-            rows += `<tr>
+            h += `<tr>
                 <td><b>${s.lin}</b></td>
                 <td>${s.name.toUpperCase()}</td>
                 <td>${s.gender}</td>
@@ -154,18 +147,18 @@
                 <td>${s.status.toUpperCase()}</td>
             </tr>`;
         });
-        document.getElementById('listBody').innerHTML = rows;
-        document.getElementById('vCount').innerText = arr.length;
+        document.getElementById('tbody').innerHTML = h;
+        document.getElementById('v').innerText = arr.length;
     }
 
-    function filterTable() {
+    function search() {
         const q = document.getElementById('find').value.toUpperCase();
-        const filtered = localData.filter(s => 
+        const f = students.filter(s => 
             s.name.toUpperCase().includes(q) || 
             s.lin.toUpperCase().includes(q) || 
             (s.class && s.class.toUpperCase().includes(q))
         );
-        renderTable(filtered);
+        draw(f);
     }
 </script>
 </body>
