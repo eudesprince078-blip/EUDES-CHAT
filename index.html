@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>PROGRESSIVE PMS - V19 REPAIR</title>
+    <title>PROGRESSIVE PMS - V20 FINAL</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <style>
@@ -15,12 +15,11 @@
         input, select { width: 100%; padding: 12px; border: 1.5px solid #eee; border-radius: 8px; font-size: 14px; box-sizing: border-box; }
         .btn-main { background: var(--blue); color: white; padding: 14px; border: none; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; }
         .student-card { background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px; border-left: 6px solid var(--blue); box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .lin-row { display: flex; gap: 10px; margin: 5px 0; font-size: 11px; color: #555; }
+        .lin-badge { font-size: 10px; background: #e9ecef; padding: 3px 7px; border-radius: 4px; font-weight: bold; color: #444; margin-right: 5px; }
         .btn-row { display: flex; gap: 5px; margin-top: 10px; }
         .action-btn { flex: 1; padding: 10px; border: none; border-radius: 6px; font-size: 10px; font-weight: bold; cursor: pointer; color: white; }
         .edit { background: var(--blue); }
         .del { background: var(--red); }
-        .sms { background: #666; }
         .wa { background: var(--green); }
         .footer { text-align: center; margin-top: 25px; font-size: 11px; font-weight: bold; color: #666; padding: 10px; border-top: 1px solid #ddd; }
         .hidden { display: none !important; }
@@ -32,7 +31,7 @@
     <h2 style="color:var(--blue)">PMS LOGIN</h2>
     <input id="u" placeholder="USERNAME" style="margin-bottom:10px;">
     <input id="p" type="password" placeholder="PASSWORD">
-    <button onclick="login()" class="btn-main" style="margin-top:15px;">ENTER</button>
+    <button onclick="login()" class="btn-main" style="margin-top:15px;">ENTER SYSTEM</button>
 </div>
 
 <div id="mainApp" class="hidden">
@@ -46,7 +45,7 @@
         <input type="hidden" id="editId">
         <div class="grid">
             <div><label>Full Name</label><input id="name"></div>
-            <div><label>Phone (256...)</label><input id="ph"></div>
+            <div><label>Phone (+256...)</label><input id="ph"></div>
             <div><label>Class</label>
                 <select id="cl">
                     <option value="Baby">Baby</option><option value="Middle">Middle</option><option value="Top">Top</option>
@@ -54,15 +53,15 @@
                     <option value="P.4">P.4</option><option value="P.5">P.5</option><option value="P.6">P.6</option><option value="P.7">P.7</option>
                 </select>
             </div>
-            <div><label>Official LIN (Manual)</label><input id="manualLin" placeholder="Enter Official Link"></div>
-            <div><label>Paid (UGX)</label><input id="fPaid" type="number"></div>
-            <div><label>Balance (UGX)</label><input id="fBal" type="number"></div>
+            <div><label>Official LIN</label><input id="officialLin" placeholder="Enter Official Link"></div>
+            <div><label>Paid (UGX)</label><input id="fPaid" type="number" value="0"></div>
+            <div><label>Balance (UGX)</label><input id="fBal" type="number" value="0"></div>
         </div>
         <button onclick="save()" class="btn-main">CONFIRM & SAVE RECORD</button>
     </div>
 
     <div class="box" style="border:none; background:transparent; padding:0;">
-        <input type="text" id="sBar" oninput="search()" placeholder="🔍 Search Name, LIN, or Class..." style="border: 2px solid var(--blue);">
+        <input type="text" id="sBar" oninput="search()" placeholder="🔍 Search Name or LIN..." style="border: 2px solid var(--blue);">
         <div id="listBody" style="margin-top:10px;"></div>
     </div>
 
@@ -79,21 +78,18 @@
         const u = document.getElementById('u').value.trim().toUpperCase();
         const p = document.getElementById('p').value.trim().toUpperCase();
         if(u === "PROGRESSIVE" && p === "JESUS CARES") {
-            try {
-                // FIXED: Direct initialization to solve connection errors
-                sb = supabase.createClient(SB_URL, SB_KEY);
-                document.getElementById('loginGate').classList.add('hidden');
-                document.getElementById('mainApp').classList.remove('hidden');
-                refresh();
-            } catch(e) { alert("Error connecting: " + e.message); }
-        } else { alert("Wrong Login Details"); }
+            sb = supabase.createClient(SB_URL, SB_KEY);
+            document.getElementById('loginGate').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+            refresh();
+        } else { alert("Login Denied"); }
     }
 
     async function refresh() {
         if(!sb) return;
-        const { data, error } = await sb.from('students').select('*').order('name', { ascending: true });
-        if(error) alert("Load Failed: " + error.message);
-        else { students = data || []; render(students); }
+        const { data } = await sb.from('students').select('*').order('name', { ascending: true });
+        students = data || [];
+        render(students);
     }
 
     function render(list) {
@@ -102,43 +98,35 @@
             html += `<div class="student-card">
                 <div>
                     <b style="font-size:15px; color:var(--dark);">${s.name.toUpperCase()}</b><br>
-                    <div class="lin-row">
-                        <span><b>AUTO LIN:</b> ${s.lin || 'N/A'}</span>
-                        <span><b>OFFICIAL:</b> ${s.official_lin || 'No Link'}</span>
+                    <div style="margin: 5px 0;">
+                        <span class="lin-badge">AUTO: ${s.lin || 'NONE'}</span>
+                        <span class="lin-badge">OFFICIAL: ${s.official_lin || 'NONE'}</span>
                     </div>
                     <span style="font-size:12px; color:#555;">Class: ${s.class} | Bal: <b style="color:var(--red);">UGX ${Number(s.fees_balance).toLocaleString()}</b></span>
                 </div>
                 <div class="btn-row">
                     <button onclick="editMode('${s.id}')" class="action-btn edit">EDIT</button>
                     <button onclick="delRecord('${s.id}', '${s.name}')" class="action-btn del">DELETE</button>
-                    <button onclick="sendQuick('${s.contact}', 'sms')" class="action-btn sms">SMS</button>
-                    <button onclick="sendQuick('${s.contact}', 'wa')" class="action-btn wa">WA</button>
+                    <button onclick="sendWA('${s.contact}', '${s.name}', '${s.fees_balance}')" class="action-btn wa">WHATSAPP</button>
                 </div>
             </div>`;
         });
         document.getElementById('listBody').innerHTML = html;
     }
 
-    function search() {
-        const q = document.getElementById('sBar').value.toUpperCase();
-        render(students.filter(s => s.name.toUpperCase().includes(q) || (s.lin && s.lin.toUpperCase().includes(q))));
-    }
-
     async function save() {
-        if(!sb) return;
         const name = document.getElementById('name').value.trim();
         const id = document.getElementById('editId').value;
-        
         const payload = {
             name: name, contact: document.getElementById('ph').value,
             class: document.getElementById('cl').value,
-            official_lin: document.getElementById('manualLin').value,
+            official_lin: document.getElementById('officialLin').value,
             fees_paid: document.getElementById('fPaid').value || 0,
             fees_balance: document.getElementById('fBal').value || 0
         };
 
         if(!id) {
-            payload.lin = "PM" + Math.floor(1000 + Math.random() * 9000);
+            payload.lin = "PMA-" + Math.floor(1000 + Math.random() * 9000);
             await sb.from('students').insert([payload]);
         } else {
             await sb.from('students').update(payload).eq('id', id);
@@ -146,16 +134,18 @@
         refresh(); reset();
     }
 
-    // FIXED DELETE FUNCTION - Ensures database removal
+    // --- REPAIRED DELETE FUNCTION ---
     async function delRecord(id, name) {
-        if(!sb) return;
-        if(confirm("Permanently delete " + name + "?")) {
-            const { error } = await sb.from('students').delete().eq('id', id);
-            if(error) { alert("Could not delete from database: " + error.message); }
-            else { 
-                alert(name + " has been removed.");
-                refresh(); 
-            }
+        if(!confirm("DELETE PERMANENTLY: " + name + "?")) return;
+        
+        // This is the critical fix: Waiting for Supabase to confirm the deletion
+        const { error } = await sb.from('students').delete().eq('id', id);
+        
+        if(error) {
+            alert("Database Error: Could not delete " + name);
+        } else {
+            alert(name + " removed successfully.");
+            refresh(); // Only re-loads the list AFTER the delete works
         }
     }
 
@@ -165,16 +155,21 @@
         document.getElementById('name').value = s.name;
         document.getElementById('ph').value = s.contact;
         document.getElementById('cl').value = s.class;
-        document.getElementById('manualLin').value = s.official_lin || '';
+        document.getElementById('officialLin').value = s.official_lin || '';
         document.getElementById('fPaid').value = s.fees_paid;
         document.getElementById('fBal').value = s.fees_balance;
         document.getElementById('fTitle').innerText = "UPDATING: " + s.name;
         window.scrollTo(0,0);
     }
 
-    function sendQuick(num, type) {
-        const url = type === 'wa' ? `https://wa.me/${num}` : `sms:${num}`;
-        window.open(url, '_blank');
+    function search() {
+        const q = document.getElementById('sBar').value.toUpperCase();
+        render(students.filter(s => s.name.toUpperCase().includes(q) || (s.lin && s.lin.toUpperCase().includes(q))));
+    }
+
+    function sendWA(num, name, bal) {
+        const msg = `PROGRESSIVE SCHOOL\nStudent: ${name}\nBalance: UGX ${Number(bal).toLocaleString()}\nEudes Media: +256762992440`;
+        window.open(`https://wa.me/${num}?text=${encodeURIComponent(msg)}`, '_blank');
     }
 
     function reset() {
