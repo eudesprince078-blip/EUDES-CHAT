@@ -2,20 +2,21 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>PROGRESSIVE PMS - V22 FORCE DELETE</title>
+    <title>PROGRESSIVE PMS - V23 ULTIMATE</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <style>
         :root { --blue: #0056b3; --dark: #002244; --white: #ffffff; --green: #25d366; --red: #dc3545; --gray: #f4f7f9; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--gray); margin: 0; padding: 10px; }
-        .box { background: var(--white); padding: 18px; border-radius: 12px; max-width: 1000px; margin: 10px auto; border: 1.5px solid #ddd; }
+        .box { background: var(--white); padding: 18px; border-radius: 12px; max-width: 1000px; margin: 10px auto; border: 1px solid #ddd; }
         .header { background: linear-gradient(135deg, var(--blue), var(--dark)); color: white; padding: 15px; border-radius: 12px; text-align: center; }
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin: 15px 0; }
         label { font-size: 11px; font-weight: bold; color: var(--blue); }
         input, select { width: 100%; padding: 12px; border: 1.5px solid #eee; border-radius: 8px; font-size: 14px; box-sizing: border-box; }
         .btn-main { background: var(--blue); color: white; padding: 14px; border: none; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        .student-card { background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px; border-left: 6px solid var(--blue); box-shadow: 0 4px 6px rgba(0,0,0,0.05); position: relative; }
-        .lin-badge { font-size: 9px; background: #f0f0f0; padding: 2px 6px; border-radius: 4px; color: #555; font-weight: bold; margin-right: 5px; }
+        .student-card { background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px; border-left: 6px solid var(--blue); box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .lin-row { display: flex; flex-wrap: wrap; gap: 5px; margin: 5px 0; }
+        .lin-badge { font-size: 9px; background: #e9ecef; padding: 2px 6px; border-radius: 4px; color: #333; font-weight: bold; }
         .btn-row { display: flex; gap: 5px; margin-top: 10px; }
         .action-btn { flex: 1; padding: 10px; border: none; border-radius: 6px; font-size: 10px; font-weight: bold; cursor: pointer; color: white; }
         .edit { background: var(--blue); }
@@ -37,7 +38,7 @@
 <div id="mainApp" class="hidden">
     <div class="header">
         <h2 style="margin:0;">PROGRESSIVE SCHOOL</h2>
-        <p style="margin:0; font-size:10px; opacity:0.8;">Eudes Media Smart System</p>
+        <p style="margin:0; font-size:10px; opacity:0.8;">Smart System by Eudes Media</p>
     </div>
 
     <div class="box" id="formContainer">
@@ -70,8 +71,8 @@
 </div>
 
 <script>
-    const SB_URL = "https://kjftrwuucjdnhfwesrup.supabase.co".trim();
-    const SB_KEY = "sb_publishable_1PetUo8klWCLfupRq52CVg_Y_YYrzcO".trim();
+    const SB_URL = "https://kjftrwuucjdnhfwesrup.supabase.co";
+    const SB_KEY = "sb_publishable_1PetUo8klWCLfupRq52CVg_Y_YYrzcO";
     let sb = null;
     let students = [];
 
@@ -89,8 +90,7 @@
     async function refresh() {
         if(!sb) return;
         const { data, error } = await sb.from('students').select('*').order('name', { ascending: true });
-        if(error) { console.error(error); }
-        else { students = data || []; render(students); }
+        if(!error) { students = data || []; render(students); }
     }
 
     function render(list) {
@@ -99,7 +99,7 @@
             html += `<div class="student-card">
                 <div>
                     <b style="font-size:15px; color:var(--dark);">${s.name.toUpperCase()}</b>
-                    <div style="margin:5px 0;">
+                    <div class="lin-row">
                         <span class="lin-badge">AUTO: ${s.lin || 'NONE'}</span>
                         <span class="lin-badge">OFFICIAL: ${s.official_lin || 'NONE'}</span>
                     </div>
@@ -130,26 +130,23 @@
             payload.lin = "PMA-" + Math.floor(1000 + Math.random() * 9000);
             await sb.from('students').insert([payload]);
         } else {
-            // This fix ensures it updates the EXACT row using the ID
-            await sb.from('students').update(payload).match({ id: id });
+            // THE FIX: Uses filter inside update to hit the specific ID
+            await sb.from('students').update(payload).eq('id', id);
         }
-        refresh(); reset();
+        await refresh(); reset();
     }
 
-    // --- CRITICAL DELETE FIX ---
-    async function delRecord(db_id, name) {
-        if(!confirm("Are you sure you want to delete " + name + " forever?")) return;
-
-        // Force a direct match on the database primary ID
-        const { error } = await sb.from('students').delete().match({ id: db_id });
-
+    async function delRecord(id, name) {
+        if(!confirm("Permanently delete " + name + "?")) return;
+        
+        // THE FIX: Direct match on the hidden database ID
+        const { error } = await sb.from('students').delete().eq('id', id);
+        
         if(error) {
-            alert("Database Error: " + error.message);
+            alert("Delete Error: " + error.message);
         } else {
-            alert("Successfully deleted " + name + " from the database.");
-            // We clear the list and reload it from scratch to prove it is gone
-            document.getElementById('listBody').innerHTML = "Updating List...";
-            await refresh();
+            alert(name + " deleted.");
+            await refresh(); 
         }
     }
 
@@ -164,7 +161,7 @@
         document.getElementById('fPaid').value = s.fees_paid;
         document.getElementById('fBal').value = s.fees_balance;
         document.getElementById('fTitle').innerText = "EDITING: " + s.name;
-        document.getElementById('saveBtn').innerText = "UPDATE RECORD";
+        document.getElementById('saveBtn').innerText = "SAVE CHANGES";
         document.getElementById('cancelBtn').classList.remove('hidden');
         window.scrollTo(0,0);
     }
@@ -183,7 +180,7 @@
 
     function search() {
         const q = document.getElementById('sBar').value.toUpperCase();
-        render(students.filter(s => s.name.toUpperCase().includes(q) || (s.lin && s.lin.toUpperCase().includes(q))));
+        render(students.filter(s => s.name.toUpperCase().includes(q)));
     }
 
     function sendWA(num, name, bal) {
