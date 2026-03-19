@@ -2,21 +2,22 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>PROGRESSIVE PMS - V18 FINAL FIX</title>
+    <title>PROGRESSIVE PMS - V19 REPAIR</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <style>
         :root { --blue: #0056b3; --dark: #002244; --white: #ffffff; --green: #25d366; --red: #dc3545; --gray: #f4f7f9; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--gray); margin: 0; padding: 10px; }
-        .box { background: var(--white); padding: 18px; border-radius: 12px; max-width: 1000px; margin: 10px auto; border: 1.5px solid #ddd; }
+        .box { background: var(--white); padding: 18px; border-radius: 12px; max-width: 1000px; margin: 10px auto; border: 1px solid #ddd; }
         .header { background: linear-gradient(135deg, var(--blue), var(--dark)); color: white; padding: 15px; border-radius: 12px; text-align: center; margin-bottom: 10px; }
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin: 15px 0; }
         label { font-size: 11px; font-weight: bold; color: var(--blue); }
         input, select { width: 100%; padding: 12px; border: 1.5px solid #eee; border-radius: 8px; font-size: 14px; box-sizing: border-box; }
         .btn-main { background: var(--blue); color: white; padding: 14px; border: none; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; }
         .student-card { background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px; border-left: 6px solid var(--blue); box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .lin-row { display: flex; gap: 10px; margin: 5px 0; font-size: 11px; color: #555; }
         .btn-row { display: flex; gap: 5px; margin-top: 10px; }
-        .action-btn { flex: 1; padding: 10px; border: none; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer; color: white; }
+        .action-btn { flex: 1; padding: 10px; border: none; border-radius: 6px; font-size: 10px; font-weight: bold; cursor: pointer; color: white; }
         .edit { background: var(--blue); }
         .del { background: var(--red); }
         .sms { background: #666; }
@@ -37,7 +38,7 @@
 <div id="mainApp" class="hidden">
     <div class="header">
         <h2 style="margin:0;">PROGRESSIVE SCHOOL</h2>
-        <p style="margin:0; font-size:10px; opacity:0.8;">Smart System by Eudes Media</p>
+        <p style="margin:0; font-size:10px; opacity:0.8;">Eudes Media Smart System</p>
     </div>
 
     <div class="box">
@@ -45,8 +46,7 @@
         <input type="hidden" id="editId">
         <div class="grid">
             <div><label>Full Name</label><input id="name"></div>
-            <div><label>Parent Phone (256...)</label><input id="ph"></div>
-            <div><label>Age</label><input id="age" type="number"></div>
+            <div><label>Phone (256...)</label><input id="ph"></div>
             <div><label>Class</label>
                 <select id="cl">
                     <option value="Baby">Baby</option><option value="Middle">Middle</option><option value="Top">Top</option>
@@ -54,7 +54,7 @@
                     <option value="P.4">P.4</option><option value="P.5">P.5</option><option value="P.6">P.6</option><option value="P.7">P.7</option>
                 </select>
             </div>
-            <div><label>Official LIN</label><input id="linDisplay" readonly placeholder="Auto-Generated"></div>
+            <div><label>Official LIN (Manual)</label><input id="manualLin" placeholder="Enter Official Link"></div>
             <div><label>Paid (UGX)</label><input id="fPaid" type="number"></div>
             <div><label>Balance (UGX)</label><input id="fBal" type="number"></div>
         </div>
@@ -62,7 +62,7 @@
     </div>
 
     <div class="box" style="border:none; background:transparent; padding:0;">
-        <input type="text" id="sBar" oninput="search()" placeholder="🔍 Type Student Name to Search..." style="border: 2px solid var(--blue);">
+        <input type="text" id="sBar" oninput="search()" placeholder="🔍 Search Name, LIN, or Class..." style="border: 2px solid var(--blue);">
         <div id="listBody" style="margin-top:10px;"></div>
     </div>
 
@@ -80,19 +80,19 @@
         const p = document.getElementById('p').value.trim().toUpperCase();
         if(u === "PROGRESSIVE" && p === "JESUS CARES") {
             try {
-                // Fixed: Initialize Supabase inside the function to avoid 'null' errors
+                // FIXED: Direct initialization to solve connection errors
                 sb = supabase.createClient(SB_URL, SB_KEY);
                 document.getElementById('loginGate').classList.add('hidden');
                 document.getElementById('mainApp').classList.remove('hidden');
                 refresh();
-            } catch(e) { alert("Connection Error: " + e.message); }
-        } else { alert("Login Denied"); }
+            } catch(e) { alert("Error connecting: " + e.message); }
+        } else { alert("Wrong Login Details"); }
     }
 
     async function refresh() {
         if(!sb) return;
         const { data, error } = await sb.from('students').select('*').order('name', { ascending: true });
-        if(error) { alert("Database error: " + error.message); }
+        if(error) alert("Load Failed: " + error.message);
         else { students = data || []; render(students); }
     }
 
@@ -101,9 +101,12 @@
         list.forEach(s => {
             html += `<div class="student-card">
                 <div>
-                    <b style="font-size:15px;">${s.name.toUpperCase()}</b><br>
-                    <span style="font-size:12px; color:#555;">LIN: <b>${s.lin || 'No LIN'}</b> | Class: ${s.class}</span><br>
-                    <span style="color:var(--red); font-size:12px; font-weight:bold;">Bal: UGX ${Number(s.fees_balance).toLocaleString()}</span>
+                    <b style="font-size:15px; color:var(--dark);">${s.name.toUpperCase()}</b><br>
+                    <div class="lin-row">
+                        <span><b>AUTO LIN:</b> ${s.lin || 'N/A'}</span>
+                        <span><b>OFFICIAL:</b> ${s.official_lin || 'No Link'}</span>
+                    </div>
+                    <span style="font-size:12px; color:#555;">Class: ${s.class} | Bal: <b style="color:var(--red);">UGX ${Number(s.fees_balance).toLocaleString()}</b></span>
                 </div>
                 <div class="btn-row">
                     <button onclick="editMode('${s.id}')" class="action-btn edit">EDIT</button>
@@ -125,41 +128,32 @@
         if(!sb) return;
         const name = document.getElementById('name').value.trim();
         const id = document.getElementById('editId').value;
-        const ph = document.getElementById('ph').value.trim();
         
-        // Check for duplicates on new registration
-        if(!id && students.some(s => s.name.toLowerCase() === name.toLowerCase() && s.contact === ph)) {
-            return alert("Error: This student is already in the system!");
-        }
-
         const payload = {
-            name: name, contact: ph, age: document.getElementById('age').value,
+            name: name, contact: document.getElementById('ph').value,
             class: document.getElementById('cl').value,
+            official_lin: document.getElementById('manualLin').value,
             fees_paid: document.getElementById('fPaid').value || 0,
             fees_balance: document.getElementById('fBal').value || 0
         };
 
         if(!id) {
-            // New Student: Create the LIN number
-            payload.lin = "PM" + name.substring(0,2).toUpperCase() + Math.floor(1000 + Math.random() * 9000);
+            payload.lin = "PM" + Math.floor(1000 + Math.random() * 9000);
             await sb.from('students').insert([payload]);
-            alert("New Record Saved!");
         } else {
-            // Update Existing
             await sb.from('students').update(payload).eq('id', id);
-            alert("Record Updated!");
         }
         refresh(); reset();
     }
 
-    // FIXED DELETE FUNCTION
+    // FIXED DELETE FUNCTION - Ensures database removal
     async function delRecord(id, name) {
         if(!sb) return;
-        if(confirm("Are you sure you want to PERMANENTLY delete " + name + "?")) {
+        if(confirm("Permanently delete " + name + "?")) {
             const { error } = await sb.from('students').delete().eq('id', id);
-            if(error) { alert("Delete failed: " + error.message); }
+            if(error) { alert("Could not delete from database: " + error.message); }
             else { 
-                alert(name + " deleted successfully!");
+                alert(name + " has been removed.");
                 refresh(); 
             }
         }
@@ -170,25 +164,22 @@
         document.getElementById('editId').value = s.id;
         document.getElementById('name').value = s.name;
         document.getElementById('ph').value = s.contact;
-        document.getElementById('age').value = s.age;
         document.getElementById('cl').value = s.class;
-        document.getElementById('linDisplay').value = s.lin || 'N/A';
+        document.getElementById('manualLin').value = s.official_lin || '';
         document.getElementById('fPaid').value = s.fees_paid;
         document.getElementById('fBal').value = s.fees_balance;
-        document.getElementById('fTitle').innerText = "Updating: " + s.name;
+        document.getElementById('fTitle').innerText = "UPDATING: " + s.name;
         window.scrollTo(0,0);
     }
 
     function sendQuick(num, type) {
-        const msg = "Hello from Progressive School regarding your child's updates.";
-        const url = type === 'wa' ? `https://wa.me/${num}?text=${encodeURIComponent(msg)}` : `sms:${num}?body=${encodeURIComponent(msg)}`;
+        const url = type === 'wa' ? `https://wa.me/${num}` : `sms:${num}`;
         window.open(url, '_blank');
     }
 
     function reset() {
         document.getElementById('editId').value = "";
         document.getElementById('name').value = "";
-        document.getElementById('linDisplay').value = "";
         document.getElementById('fTitle').innerText = "Student Registration";
     }
 </script>
