@@ -1,45 +1,45 @@
 // --- 1. CONFIGURATION ---
-const _URL = "YOUR_SUPABASE_URL";
+// Replace these with your actual Supabase URL and Key
+const _URL = "YOUR_SUPABASE_URL"; 
 const _KEY = "YOUR_SUPABASE_ANON_KEY";
 const supabase = supabase.createClient(_URL, _KEY);
 
-// --- 2. FETCH RECORDS (WITH DEBUG) ---
+// --- 2. FETCH AND DISPLAY RECORDS ---
 async function fetchRecords() {
-    console.log("DEBUG: Attempting to fetch records from 'students' table...");
-    
+    console.log("DEBUG: Fetching records...");
     const { data, error } = await supabase
         .from('students')
-        .select('*');
+        .select('*')
+        .order('created_at', { ascending: false });
 
     if (error) {
-        console.error("FETCH ERROR:", error);
-        alert("FETCH FAILED: " + error.message + "\nCheck if RLS 'SELECT' policy is enabled.");
+        alert("FETCH ERROR: " + error.message);
         return;
     }
-
-    console.log("DEBUG: Data received:", data);
 
     const tableBody = document.getElementById('recordTableBody');
-    if (!tableBody) {
-        alert("CRITICAL ERROR: Could not find 'recordTableBody' in your HTML.");
-        return;
-    }
+    if (!tableBody) return;
 
     tableBody.innerHTML = ""; 
 
     if (data.length === 0) {
-        tableBody.innerHTML = "<tr><td colspan='7' style='text-align:center;'>No records found in database.</td></tr>";
+        tableBody.innerHTML = "<tr><td colspan='7' style='text-align:center;'>No records found.</td></tr>";
+        return;
     }
 
     data.forEach((student, index) => {
+        // We calculate age here based on the DOB in the database
+        const birthDate = new Date(student.dob);
+        const age = student.dob ? (new Date().getFullYear() - birthDate.getFullYear()) : "N/A";
+
         const row = `
             <tr>
                 <td>${index + 1}</td>
                 <td>${student.gen_lin || 'N/A'}</td>
                 <td>${student.official_lin || 'N/A'}</td>
                 <td>${student.name || 'No Name'}</td>
-                <td>${student.age || 'N/A'}</td>
-                <td>${student.location || 'No Location'}</td> 
+                <td>${age}</td>
+                <td>${student.location || 'N/A'}</td> 
                 <td>${student.student_status || 'Active'}</td>
             </tr>
         `;
@@ -47,51 +47,55 @@ async function fetchRecords() {
     });
 }
 
-// --- 3. UPLOAD RECORD (WITH DEBUG) ---
+// --- 3. UPLOAD RECORD ---
 async function registerStudent() {
     const btn = document.querySelector("button");
     const originalText = btn.innerText;
-    btn.innerText = "UPLOADING... PLEASE WAIT";
+    
+    // Change button state
+    btn.innerText = "UPLOADING...";
     btn.disabled = true;
 
-    console.log("DEBUG: Starting Upload Process...");
+    // Get values from your form
+    const nameValue = document.getElementById('regName').value;
+    const dobValue = document.getElementById('regDOB').value;
+    const locationValue = document.getElementById('regLocation').value;
+    const healthValue = document.getElementById('regHealth').value;
+    const officialLINValue = document.getElementById('regOfficialLIN').value;
+    const contactValue = document.getElementById('regContact').value;
 
-    // Collect data from IDs (Ensure these IDs exist in your HTML)
+    // Generate a unique LIN for the record
+    const generatedLIN = `PM${nameValue.charAt(0).toUpperCase()}${Math.floor(1000 + Math.random() * 9000)}`;
+
     const studentData = {
-        name: document.getElementById('regName').value,
-        dob: document.getElementById('regDOB').value,
-        contact_number: document.getElementById('regContact').value,
-        location: document.getElementById('regLocation').value, // Matches Supabase 'location'
-        health_status: document.getElementById('regHealth').value,
-        official_lin: document.getElementById('regOfficialLIN').value,
-        student_status: 'Active',
-        gen_lin: `PM${Math.floor(1000 + Math.random() * 9000)}`
+        name: nameValue,
+        dob: dobValue,
+        location: locationValue, // Matches your 'location' column in Supabase
+        health_status: healthValue,
+        official_lin: officialLINValue,
+        contact_number: contactValue,
+        gen_lin: generatedLIN,
+        student_status: 'Active'
     };
 
-    console.log("DEBUG: Sending this data to Supabase:", studentData);
-
-    const { data, error } = await supabase
+    const { error } = await supabase
         .from('students')
         .insert([studentData]);
 
     if (error) {
-        console.error("INSERT ERROR:", error);
-        alert("UPLOAD FAILED!\n\nError: " + error.message + 
-              "\n\nCommon Fixes:\n1. Ensure column name is 'location' not 'physical_location'.\n2. Ensure RLS 'INSERT' policy is enabled.");
-        
+        alert("UPLOAD FAILED: " + error.message);
         btn.innerText = originalText;
         btn.disabled = false;
     } else {
-        console.log("DEBUG: Upload successful!");
-        alert("SUCCESS: Record saved to Supabase.");
+        alert("SUCCESS: Record saved!");
+        // Reset form and button
         btn.innerText = originalText;
         btn.disabled = false;
-        fetchRecords(); // Refresh the list
+        
+        // Refresh the table to show the new record
+        fetchRecords();
     }
 }
 
-// Initialize
-window.onload = () => {
-    console.log("DEBUG: Page loaded. Initializing fetch...");
-    fetchRecords();
-};
+// Initialize the app
+window.onload = fetchRecords;
