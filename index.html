@@ -1,101 +1,114 @@
-// --- 1. CONFIGURATION ---
-// Replace these with your actual Supabase URL and Key
-const _URL = "YOUR_SUPABASE_URL"; 
-const _KEY = "YOUR_SUPABASE_ANON_KEY";
-const supabase = supabase.createClient(_URL, _KEY);
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eudes Media - Student Management</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* Basic styling to match your brand */
+        body { font-family: Arial, sans-serif; background-color: white; color: #003366; padding: 20px; }
+        input, select, button { display: block; width: 100%; margin: 10px 0; padding: 10px; border: 1px solid blue; border-radius: 5px; }
+        button { background-color: #003366; color: white; font-weight: bold; cursor: pointer; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #003366; color: white; }
+    </style>
+</head>
+<body>
 
-// --- 2. FETCH AND DISPLAY RECORDS ---
-async function fetchRecords() {
-    console.log("DEBUG: Fetching records...");
-    const { data, error } = await supabase
-        .from('students')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-    if (error) {
-        alert("FETCH ERROR: " + error.message);
-        return;
-    }
-
-    const tableBody = document.getElementById('recordTableBody');
-    if (!tableBody) return;
-
-    tableBody.innerHTML = ""; 
-
-    if (data.length === 0) {
-        tableBody.innerHTML = "<tr><td colspan='7' style='text-align:center;'>No records found.</td></tr>";
-        return;
-    }
-
-    data.forEach((student, index) => {
-        // We calculate age here based on the DOB in the database
-        const birthDate = new Date(student.dob);
-        const age = student.dob ? (new Date().getFullYear() - birthDate.getFullYear()) : "N/A";
-
-        const row = `
-            <tr>
-                <td>${index + 1}</td>
-                <td>${student.gen_lin || 'N/A'}</td>
-                <td>${student.official_lin || 'N/A'}</td>
-                <td>${student.name || 'No Name'}</td>
-                <td>${age}</td>
-                <td>${student.location || 'N/A'}</td> 
-                <td>${student.student_status || 'Active'}</td>
-            </tr>
-        `;
-        tableBody.insertAdjacentHTML('beforeend', row);
-    });
-}
-
-// --- 3. UPLOAD RECORD ---
-async function registerStudent() {
-    const btn = document.querySelector("button");
-    const originalText = btn.innerText;
+    <h2>SCHOOL DATA +</h2>
     
-    // Change button state
-    btn.innerText = "UPLOADING...";
-    btn.disabled = true;
+    <input type="text" id="regName" placeholder="Full Name">
+    <input type="date" id="regDOB">
+    <input type="text" id="regLocation" placeholder="Physical Location">
+    <input type="text" id="regContact" placeholder="Contact Number">
+    <input type="text" id="regOfficialLIN" placeholder="Official LIN">
+    
+    <select id="regHealth">
+        <option value="Good">Health: Good</option>
+        <option value="Fair">Health: Fair</option>
+        <option value="Sick">Health: Sick</option>
+    </select>
 
-    // Get values from your form
-    const nameValue = document.getElementById('regName').value;
-    const dobValue = document.getElementById('regDOB').value;
-    const locationValue = document.getElementById('regLocation').value;
-    const healthValue = document.getElementById('regHealth').value;
-    const officialLINValue = document.getElementById('regOfficialLIN').value;
-    const contactValue = document.getElementById('regContact').value;
+    <button id="uploadBtn" onclick="registerStudent()">CONFIRM & UPLOAD RECORD</button>
 
-    // Generate a unique LIN for the record
-    const generatedLIN = `PM${nameValue.charAt(0).toUpperCase()}${Math.floor(1000 + Math.random() * 9000)}`;
+    <hr>
 
-    const studentData = {
-        name: nameValue,
-        dob: dobValue,
-        location: locationValue, // Matches your 'location' column in Supabase
-        health_status: healthValue,
-        official_lin: officialLINValue,
-        contact_number: contactValue,
-        gen_lin: generatedLIN,
-        student_status: 'Active'
-    };
+    <table id="studentTable">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>GEN LIN</th>
+                <th>OFFICIAL LIN</th>
+                <th>NAME</th>
+                <th>LOCATION</th>
+                <th>STATUS</th>
+            </tr>
+        </thead>
+        <tbody id="recordTableBody">
+            </tbody>
+    </table>
 
-    const { error } = await supabase
-        .from('students')
-        .insert([studentData]);
+    <p style="text-align:center; font-size: 12px; margin-top: 30px;">
+        Eudes Media | +256762992440
+    </p>
 
-    if (error) {
-        alert("UPLOAD FAILED: " + error.message);
-        btn.innerText = originalText;
-        btn.disabled = false;
-    } else {
-        alert("SUCCESS: Record saved!");
-        // Reset form and button
-        btn.innerText = originalText;
-        btn.disabled = false;
-        
-        // Refresh the table to show the new record
-        fetchRecords();
-    }
-}
+    <script>
+        // REPLACE THESE with your actual credentials from Supabase
+        const _URL = "YOUR_SUPABASE_URL"; 
+        const _KEY = "YOUR_SUPABASE_ANON_KEY";
+        const supabase = supabase.createClient(_URL, _KEY);
 
-// Initialize the app
-window.onload = fetchRecords;
+        async function fetchRecords() {
+            const { data, error } = await supabase.from('students').select('*');
+            if (error) { console.error(error); return; }
+
+            const tableBody = document.getElementById('recordTableBody');
+            tableBody.innerHTML = ""; 
+
+            data.forEach((student, index) => {
+                const row = `<tr>
+                    <td>${index + 1}</td>
+                    <td>${student.gen_lin || 'N/A'}</td>
+                    <td>${student.official_lin || 'N/A'}</td>
+                    <td>${student.name || 'No Name'}</td>
+                    <td>${student.location || 'N/A'}</td>
+                    <td>${student.student_status || 'Active'}</td>
+                </tr>`;
+                tableBody.insertAdjacentHTML('beforeend', row);
+            });
+        }
+
+        async function registerStudent() {
+            const btn = document.getElementById('uploadBtn');
+            btn.innerText = "UPLOADING...";
+            
+            const name = document.getElementById('regName').value;
+            const location = document.getElementById('regLocation').value;
+
+            const { error } = await supabase.from('students').insert([{
+                name: name,
+                location: location, // Matches your 'location' column
+                dob: document.getElementById('regDOB').value,
+                contact_number: document.getElementById('regContact').value,
+                official_lin: document.getElementById('regOfficialLIN').value,
+                health_status: document.getElementById('regHealth').value,
+                gen_lin: "PM" + Math.floor(1000 + Math.random() * 9000),
+                student_status: 'Active'
+            }]);
+
+            if (error) {
+                alert("Error: " + error.message);
+            } else {
+                alert("Success!");
+                fetchRecords();
+            }
+            btn.innerText = "CONFIRM & UPLOAD RECORD";
+        }
+
+        // Run fetch on load
+        window.onload = fetchRecords;
+    </script>
+</body>
+</html>
