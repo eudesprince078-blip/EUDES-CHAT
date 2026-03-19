@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>PROGRESSIVE PMS - FULL ADMIN V10</title>
+    <title>PROGRESSIVE PMS - SMS FIXED V11</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <style>
@@ -25,9 +25,6 @@
         table { width: 100%; border-collapse: collapse; min-width: 1100px; font-size: 12px; }
         th { background: #f8f9fa; color: var(--blue); padding: 12px; text-align: left; border-bottom: 2px solid #ddd; }
         td { padding: 12px; border-bottom: 1px solid #eee; background: white; }
-        .badge { padding: 4px 8px; border-radius: 5px; font-weight: bold; }
-        .paid { background: #d4edda; color: var(--green); }
-        .unpaid { background: #f8d7da; color: var(--red); }
         .footer { text-align: center; margin-top: 20px; font-size: 12px; font-weight: bold; color: #444; }
         .hidden { display: none !important; }
     </style>
@@ -55,12 +52,13 @@
     </div>
 
     <div class="box" style="border-color: var(--green);">
-        <h3 style="color:var(--green); margin:0 0 10px 0; font-size:14px;">Bulk Communication</h3>
-        <textarea id="smsMsg" rows="2" placeholder="Write fee reminders or school news here..."></textarea>
+        <h3 style="color:var(--green); margin:0 0 10px 0; font-size:14px;">Bulk SMS Portal</h3>
+        <textarea id="smsMsg" rows="2" placeholder="Write message to parents..."></textarea>
         <div style="display:flex; gap:10px; margin-top:10px;">
             <button onclick="sendBulkSMS('all')" class="btn" style="background:var(--green); font-size:11px; padding:10px;">SMS All Parents</button>
             <button onclick="sendBulkSMS('debt')" class="btn" style="background:var(--red); font-size:11px; padding:10px;">SMS Debtors Only</button>
         </div>
+        <p style="font-size:10px; color:#666; margin-top:5px;">Note: This will open your SMS app for each parent to ensure delivery.</p>
     </div>
 
     <div class="box">
@@ -148,7 +146,6 @@
     function render(list) {
         let rows = "";
         list.forEach(s => {
-            const cls = s.fees_status === 'Full' ? "paid" : "unpaid";
             const contact = s.contact || '';
             rows += `<tr>
                 <td style="font-weight:bold; color:var(--blue);">${s.lin || '--'}</td>
@@ -157,9 +154,7 @@
                 <td><b>${s.class}</b></td>
                 <td>UGX ${Number(s.fees_paid || 0).toLocaleString()}</td>
                 <td style="color:var(--red); font-weight:bold;">UGX ${Number(s.fees_balance || 0).toLocaleString()}</td>
-                <td>
-                    ${contact ? `<a href="tel:${contact}" class="btn-call">📞 CALL</a>` : '<small>No No.</small>'}
-                </td>
+                <td>${contact ? `<a href="tel:${contact}" class="btn-call">📞 CALL</a>` : '<small>No No.</small>'}</td>
                 <td>
                     <button onclick="editStep('${s.id}')" class="btn-edit">EDIT</button>
                     <button onclick="delStep('${s.id}', '${s.name}')" class="btn-del">DELETE</button>
@@ -169,14 +164,29 @@
         document.getElementById('tbody').innerHTML = rows;
     }
 
+    async function sendBulkSMS(type) {
+        const msg = document.getElementById('smsMsg').value;
+        if(!msg) return alert("Write a message first!");
+        
+        let targets = type === 'debt' ? students.filter(s => s.fees_status !== 'Full') : students;
+        let numbers = targets.map(s => s.contact).filter(n => n && n.length > 5);
+        
+        if(numbers.length === 0) return alert("No phone numbers found.");
+        
+        alert(`Starting loop for ${numbers.length} messages. Please click 'Send' in your SMS app for each parent.`);
+        
+        // Loop through each number to avoid "net::ERR_UNKNOWN_URL_SCHEME"
+        for (let num of numbers) {
+            window.open(`sms:${num}?body=${encodeURIComponent(msg)}`, '_blank');
+            // Small delay to prevent browser from blocking multiple popups
+            await new Promise(r => setTimeout(r, 800));
+        }
+    }
+
     async function save() {
         const nameVal = document.getElementById('name').value.trim();
-        if(!nameVal) return alert("Please enter a name");
+        if(!nameVal) return alert("Enter Name");
         if(!sb) sb = supabase.createClient(SB_URL, SB_KEY);
-        
-        const btn = document.getElementById('sBtn');
-        btn.disabled = true; btn.innerText = "UPLOADING...";
-
         const id = document.getElementById('editId').value;
         const pupil = {
             name: nameVal, official_lin: document.getElementById('olin').value,
@@ -186,7 +196,6 @@
             fees_paid: document.getElementById('fPaid').value || 0, fees_balance: document.getElementById('fBal').value || 0,
             health_status: document.getElementById('health').value, status: document.getElementById('st').value
         };
-
         try {
             if(!id) {
                 pupil.lin = "PM" + nameVal.charAt(0).toUpperCase() + "-" + Math.floor(1000 + Math.random() * 9000);
@@ -194,41 +203,26 @@
             } else {
                 await sb.from('students').update(pupil).eq('id', id);
             }
-            alert("Record Saved!"); resetForm(); refresh();
+            alert("Saved!"); resetForm(); refresh();
         } catch(e) { alert("Error: " + e.message); }
-        finally { btn.disabled = false; btn.innerText = "CONFIRM & UPLOAD RECORD"; }
     }
 
     async function delStep(id, name) {
-        if(confirm(`ARE YOU SURE? This will permanently delete ${name.toUpperCase()} from the system.`)) {
-            const { error } = await sb.from('students').delete().eq('id', id);
-            if(!error) {
-                alert("Deleted Successfully.");
-                refresh();
-            } else {
-                alert("Delete Error: " + error.message);
-            }
+        if(confirm(`Delete ${name.toUpperCase()}?`)) {
+            await sb.from('students').delete().eq('id', id);
+            refresh();
         }
     }
 
     async function runPromotion() {
-        if(!confirm("Promote all pupils to next class and reset fees?")) return;
+        if(!confirm("Promote all pupils?")) return;
         for(let s of students) {
             let idx = classOrder.indexOf(s.class);
             if(idx !== -1 && idx < classOrder.length - 1) {
                 await sb.from('students').update({ class: classOrder[idx+1], fees_paid: 0, fees_balance: 0, fees_status: 'None' }).eq('id', s.id);
             }
         }
-        alert("Promotion Done!"); refresh();
-    }
-
-    async function sendBulkSMS(type) {
-        const msg = document.getElementById('smsMsg').value;
-        if(!msg) return alert("Write a message first!");
-        let targets = type === 'debt' ? students.filter(s => s.fees_status !== 'Full') : students;
-        let numbers = targets.map(s => s.contact).filter(n => n && n.length > 5);
-        if(numbers.length === 0) return alert("No phone numbers found.");
-        window.location.href = `sms:${numbers.join(',')}?body=${encodeURIComponent(msg)}`;
+        alert("Done!"); refresh();
     }
 
     function calcAge() {
@@ -241,9 +235,6 @@
         if(!s) return;
         document.getElementById('editId').value = s.id;
         document.getElementById('name').value = s.name;
-        document.getElementById('olin').value = s.official_lin || '';
-        document.getElementById('dob').value = s.dob || '';
-        document.getElementById('age').value = s.age || '';
         document.getElementById('ph').value = s.contact || '';
         document.getElementById('cl').value = s.class;
         document.getElementById('fStat').value = s.fees_status;
@@ -256,7 +247,7 @@
 
     function search() {
         const q = document.getElementById('sBar').value.toUpperCase();
-        render(students.filter(s => s.name.toUpperCase().includes(q) || s.class.toUpperCase().includes(q) || (s.official_lin && s.official_lin.includes(q))));
+        render(students.filter(s => s.name.toUpperCase().includes(q) || s.class.toUpperCase().includes(q)));
     }
 
     function resetForm() {
